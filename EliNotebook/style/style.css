@@ -1,0 +1,301 @@
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@100;300;400;500;700;900&display=swap");
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Fira sans", "Poppins", "sans-serf";
+}
+
+:root {
+  --clr: #5a5f74;
+  --primiry: #d3bd96;
+  --dark: #374151;
+  --darker: #1f2937;
+  --darkest: #111827;
+  --gray: #6b7280;
+  --light: #eee;
+  --pink: #ec4899;
+  --purple: #8b5cf6;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--clr);
+}
+
+header {
+  display: flex;
+  min-height: 20vh;
+  width: 100vw;
+  flex-direction: row;
+  justify-content: space-around;
+  z-index: 1;
+  margin: 2em 0 0 0;
+}
+
+header div.logo {
+  display: flex;
+  font-size: 64px;
+  z-index: 1;
+}
+
+header div.clock {
+  font-size: 64px;
+}
+
+header .navigation {
+  position: relative;
+  width: 400px;
+  height: 70px;
+  background: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 10px;
+}
+
+header .navigation ul {
+  display: flex;
+  width: 350px;
+}
+
+header .navigation ul li {
+  position: relative;
+  list-style: none;
+  width: 70px;
+  height: 70px;
+  z-index: 1;
+}
+
+header .navigation ul li a {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  width: 100%;
+  text-align: center;
+  font-weight: 500;
+}
+
+header .navigation ul li a .icon {
+  position: relative;
+  display: block;
+  line-height: 75px;
+  font-size: 1.5em;
+  text-align: center;
+  transition: 0.5s;
+  color: var(--clr);
+}
+
+header .navigation ul li a .icon:hover {
+  transform: translateY(-35px);
+}
+
+header .navigation ul li a .text {
+  position: absolute;
+  color: var(--clr);
+  font-weight: 400;
+  font-size: 0.75em;
+  letter-spacing: 0.05em;
+  transition: 0.5s;
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+header .navigation ul li.active a .icon {
+  transform: translateY(-32px);
+}
+
+header .navigation ul li.active a .text {
+  transform: translateY(10px);
+  opacity: 1;
+}
+
+header .indicator {
+  position: absolute;
+  width: 70px;
+  height: 70px;
+  background: #29fd53;
+  top: -50%;
+  border-radius: 50%;
+  border: 6px solid var(--clr);
+  transition: 0.5s;
+}
+
+header .indicator::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -22px;
+  width: 20px;
+  height: 20px;
+  background: transparent;
+  border-top-right-radius: 20px;
+  box-shadow: 1px -10px 0 0 var(--clr);
+}
+
+header .indicator::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: -22px;
+  width: 20px;
+  height: 20px;
+  background: transparent;
+  border-top-left-radius: 20px;
+  box-shadow: -1px -10px 0 0 var(--clr);
+}
+
+header .navigation ul li:nth-child(1).active ~ .indicator {
+  transform: translateX(calc(70px * 0));
+}
+
+header .navigation ul li:nth-child(2).active ~ .indicator {
+  transform: translateX(calc(70px * 1));
+}
+
+header .navigation ul li:nth-child(3).active ~ .indicator {
+  transform: translateX(calc(70px * 2));
+}
+
+header .navigation ul li:nth-child(4).active ~ .indicator {
+  transform: translateX(calc(70px * 3));
+}
+
+header .navigation ul li:nth-child(5).active ~ .indicator {
+  transform: translateX(calc(70px * 4));
+}
+
+div.task {
+  padding: 2rem 1rem;
+  max-width: 800px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+div.task h1 {
+  font-size: 2.5rem;
+  font-weight: 300;
+  color: var(--gray);
+  margin-bottom: 1rem;
+}
+
+div.task form#new-task-form {
+  display: flex;
+}
+
+div.task form#new-task-form #new-task-input {
+  flex: 1 1 0%;
+  background-color: var(--darker);
+  padding: 1rem;
+  border-radius: 1rem;
+  margin-right: 1rem;
+  color: var(--light);
+  font-size: 1.25rem;
+}
+
+div.task form#new-task-form #new-task-input::placeholder {
+  color: var(--gray);
+}
+
+div.task form#new-task-form #new-task-submit {
+  color: var(--pink);
+  font-size: 1.25rem;
+  font-weight: 700;
+  background-image: linear-gradient(to right, var(--pink), var(--purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  cursor: pointer;
+  transition: 0.4s;
+  border-radius: 20px;
+}
+
+div.task #news-task-submit:hover {
+  opacity: 0.8s;
+}
+
+div.task #new-task-submit:active {
+  opacity: 0.6;
+}
+
+div.task main {
+  flex: 1 1 0%;
+  max-width: 800px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+div.task main .task-list {
+  padding: 1rem;
+}
+
+div.task main .task-list h2 {
+  font-size: 1.5rem;
+  font-weight: 300;
+  color: var(--gray);
+  margin-bottom: 1rem;
+}
+
+div.task main #tasks .task {
+  display: flex;
+  justify-content: space-between;
+  background-color: var(--darkest);
+  padding: 1rem;
+  border-radius: 1rem;
+  margin-bottom: 1rem;
+}
+
+div.task main #tasks .task .content {
+  flex: 1 1 0%;
+}
+
+div.task main #tasks .task .content .text {
+  color: var(--light);
+  font-size: 1.125rem;
+  width: 100%;
+  display: block;
+  transition: 0.4s;
+}
+
+div.task main #tasks .task .content .text:not(:read-only) {
+  color: var(--pink);
+}
+
+div.task main #tasks .task .action {
+  display: flex;
+  margin: 0 -0.5rem;
+  border-radius: 10%;
+}
+
+div.task main .task .actions button {
+  cursor: pointer;
+  margin: 0 0.5rem;
+  font-size: 1.125rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  transition: 0.4s;
+  border-radius: 20px;
+}
+
+div.task main .task .actions button:hover {
+  opacity: 0.8;
+}
+
+div.task main .task .actions button:active {
+  opacity: 0.6;
+}
+
+div.task main .task .actions .edit {
+  background-image: linear-gradient(to right, var(--pink), var(--purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  border-radius: 20px;
+}
+
+div.task main .task .actions .delete {
+  color: crimson;
+  border-radius: 20px;
+}
