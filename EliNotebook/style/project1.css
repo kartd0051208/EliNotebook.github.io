@@ -1,0 +1,25 @@
+.aaa {
+    background: #3333;
+}
+
+.bbb{
+    background: #6666;
+}
+
+/*
+1.
+請做出一個表格 Table ,資料結構如下:
+    班級,學號,姓名,分數
+    A,123,John,60
+    B,456,Bob,50
+    C,444,Mary,90
+    D,617,Jerry,0
+    E,543,Suzy,85
+    
+將資料放置表格內並顯示於頁面中
+2.
+請做出一個 Form 表單
+可以輸入 班級,學號,姓名,分數
+並用 POST 方法提交到 google.com
+3.
+能用 JS 將 Form 的提交內容的同時也新增至 Table 內嗎？
