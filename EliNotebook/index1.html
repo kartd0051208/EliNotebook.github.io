@@ -4,11 +4,11 @@
   <meta charset="utf-8">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="description" content="EliNotebook 2.0｜保存在目前瀏覽器的個人備忘錄工具。">
+  <meta name="description" content="EliNotebook 2.2｜支援多格式匯入匯出的本機備忘錄工具。">
   <meta name="referrer" content="no-referrer">
   <meta name="theme-color" content="#37413a">
-  <title>EliNotebook 2.0｜個人備忘錄</title>
-  <link rel="stylesheet" href="./style/style.css?v=2.0.1">
+  <title>EliNotebook 2.2｜個人備忘錄</title>
+  <link rel="stylesheet" href="./style/style.css?v=2.2.0">
 </head>
 <body>
   <a class="skip-link" href="#main-content">跳至主要內容</a>
@@ -16,10 +16,11 @@
   <header class="topbar">
     <a class="brand" href="../index.html" aria-label="返回葉秀庭個人網頁">
       <span class="brand-mark" aria-hidden="true">E</span>
-      <span><strong>EliNotebook</strong><small>PERSONAL NOTES · 2.0</small></span>
+      <span><strong>EliNotebook</strong><small>PERSONAL NOTES · 2.2 IMPORT</small></span>
     </a>
     <div class="topbar-actions">
       <time id="clock" aria-label="目前時間">載入時間中</time>
+      <button class="privacy-button" id="privacy-toggle" type="button">隱藏畫面</button>
       <button class="icon-button" id="theme-toggle" type="button" aria-label="切換深色模式" title="切換深色模式">◐</button>
       <a class="back-link" href="../index.html">返回個人網頁</a>
     </div>
@@ -42,6 +43,11 @@
           <p>快速記錄、分類整理，資料只保存在目前瀏覽器。</p>
         </div>
 
+        <aside class="local-privacy-banner" aria-label="備忘錄隱私與儲存說明">
+          <span class="privacy-status-icon" aria-hidden="true">✓</span>
+          <div><strong>僅限目前裝置使用，沒有雲端同步</strong><p>公開的是網站程式與網址；你輸入的備忘錄只保存在目前這台裝置的這個瀏覽器，不會上傳到 GitHub，其他訪客也看不到。換手機、換電腦、換瀏覽器或使用無痕模式時不會同步；清除網站資料可能永久遺失內容，請定期匯出備份。共用裝置或公開備份檔時，內容仍可能被他人看到。</p></div>
+        </aside>
+
         <div class="summary-grid" aria-label="備忘錄統計">
           <article><span>全部</span><strong id="total-count">0</strong><small>則備忘錄</small></article>
           <article><span>待完成</span><strong id="pending-count">0</strong><small>則待處理</small></article>
@@ -51,7 +57,8 @@
         <form id="quick-add-form" class="composer">
           <div class="composer-heading"><div><p class="eyebrow">QUICK NOTE</p><h2>新增備忘錄</h2></div><span id="character-count">0 / 500</span></div>
           <label for="new-task-input">備忘錄內容</label>
-          <textarea id="new-task-input" maxlength="500" rows="4" placeholder="例如：星期五下午三點聯絡王先生" required></textarea>
+          <textarea id="new-task-input" maxlength="500" rows="4" placeholder="例如：星期五下午三點整理申請流程（請勿輸入客戶個資）" autocomplete="off" spellcheck="false" required></textarea>
+          <p class="input-safety" id="input-safety">系統會阻擋身分證、電話、Email、信用卡及明顯的病歷／保單識別資料。</p>
           <div class="composer-options">
             <label>分類<select id="new-task-category"><option value="工作">工作</option><option value="客戶聯繫">客戶聯繫</option><option value="理賠">理賠</option><option value="保單整理">保單整理</option><option value="個人">個人</option><option value="其他">其他</option></select></label>
             <label>優先程度<select id="new-task-priority"><option value="medium">中</option><option value="high">高</option><option value="low">低</option></select></label>
@@ -83,12 +90,20 @@
       </section>
 
       <section class="view" id="view-backup" data-view-panel="backup">
-        <div class="page-heading"><p class="eyebrow">BACKUP</p><h1>備份與還原</h1><p>定期匯出備份，避免清除瀏覽器資料後遺失。</p></div>
+        <div class="page-heading"><p class="eyebrow">BACKUP</p><h1>備份與還原</h1><p>本工具不會跨裝置同步；請定期匯出備份，避免清除瀏覽器資料後遺失。</p></div>
         <div class="utility-grid">
-          <article class="utility-card"><span aria-hidden="true">JSON</span><h2>完整資料備份</h2><p>保留內容、分類、優先程度、完成狀態及日期，日後可重新匯入。</p><button id="export-json" class="primary-button" type="button">匯出 JSON</button></article>
-          <article class="utility-card"><span aria-hidden="true">TXT</span><h2>閱讀用文字檔</h2><p>輸出方便閱讀的純文字清單，但無法用它完整還原資料欄位。</p><button id="export-text" class="secondary-button" type="button">匯出文字檔</button></article>
-          <article class="utility-card"><span aria-hidden="true">↑</span><h2>匯入完整備份</h2><p>選擇由 EliNotebook 匯出的 JSON；匯入前會詢問要合併或取代。</p><label class="file-button" for="import-json">選擇 JSON 檔</label><input id="import-json" type="file" accept="application/json,.json"></article>
+          <article class="utility-card"><span aria-hidden="true">JSON</span><h2>完整資料備份</h2><p>完整保留分類、優先程度、完成狀態及日期，最適合日後還原。</p><button id="export-json" class="primary-button" type="button">匯出 JSON</button></article>
+          <article class="utility-card"><span aria-hidden="true">CSV</span><h2>試算表資料</h2><p>可使用 Excel、Numbers 或 Google 試算表開啟，也能重新匯入。</p><button id="export-csv" class="secondary-button" type="button">匯出 CSV</button></article>
+          <article class="utility-card"><span aria-hidden="true">TXT</span><h2>純文字清單</h2><p>適合一般文字編輯器閱讀，也支援逐行匯入為備忘錄。</p><button id="export-text" class="secondary-button" type="button">匯出 TXT</button></article>
+          <article class="utility-card"><span aria-hidden="true">MD</span><h2>Markdown 文件</h2><p>適合筆記軟體與程式平台；清單項目可重新匯入。</p><button id="export-markdown" class="secondary-button" type="button">匯出 Markdown</button></article>
+          <article class="utility-card"><span aria-hidden="true">HTML</span><h2>網頁閱讀檔</h2><p>輸出可離線開啟的網頁檔；匯入時只讀取文字，不執行程式。</p><button id="export-html" class="secondary-button" type="button">匯出 HTML</button></article>
+          <article class="utility-card"><span aria-hidden="true">PDF</span><h2>列印或另存 PDF</h2><p>開啟瀏覽器列印視窗，可選擇印表機或「另存為 PDF」。</p><button id="print-notes" class="secondary-button" type="button">列印／另存 PDF</button></article>
         </div>
+        <section class="import-panel" aria-labelledby="import-title">
+          <div><p class="eyebrow">IMPORT FILE</p><h2 id="import-title">從檔案匯入</h2><p>支援 JSON、CSV、TXT、Markdown（.md）及 HTML。檔案上限 5MB；內容只在目前瀏覽器處理，不會上傳。</p></div>
+          <label class="file-button" for="import-file">選擇要匯入的檔案</label>
+          <input id="import-file" type="file" accept=".json,.csv,.txt,.md,.markdown,.html,.htm,application/json,text/csv,text/plain,text/markdown,text/html">
+        </section>
       </section>
 
       <section class="view" id="view-settings" data-view-panel="settings">
@@ -96,15 +111,36 @@
         <div class="settings-list">
           <article><div><h2>外觀模式</h2><p>切換淺色或深色模式，選擇會保存在目前瀏覽器。</p></div><button id="settings-theme-toggle" class="secondary-button" type="button">切換外觀</button></article>
           <article><div><h2>本機儲存狀態</h2><p id="storage-status">正在檢查……</p></div><span class="status-badge">localStorage</span></article>
+          <article><div><h2>自動隱藏畫面</h2><p>離開分頁時立即遮蔽；停留在頁面但沒有操作時，也會依設定自動遮蔽。</p></div><label class="setting-field">閒置時間<select id="privacy-delay"><option value="60000">1 分鐘</option><option value="120000" selected>2 分鐘</option><option value="300000">5 分鐘</option><option value="0">只在離開分頁時</option></select></label></article>
+          <article><div><h2>敏感資料檢查</h2><p id="security-status">正在檢查目前內容……</p></div><span class="status-badge safe">輸入防護</span></article>
           <article class="danger-zone"><div><h2>清除全部備忘錄</h2><p>這個動作無法復原，建議先到「備份」匯出 JSON。</p></div><button id="clear-all" class="danger-button" type="button">清除全部</button></article>
         </div>
-        <aside class="privacy-notice"><strong>重要隱私提醒</strong><p>目前版本沒有帳號、雲端同步或資料加密。請勿記錄客戶姓名、身分證字號、病歷、保單號碼、聯絡方式或理賠文件等個人及敏感資料。</p></aside>
+        <aside class="privacy-notice"><strong>重要隱私提醒</strong><p>輸入阻擋與畫面遮蔽只能降低誤用及旁人看到的風險；目前版本仍沒有帳號、雲端同步或資料加密。請勿記錄客戶姓名、身分證字號、病歷、保單號碼、聯絡方式或理賠文件等個人及敏感資料。</p></aside>
       </section>
     </main>
   </div>
 
   <div class="toast" id="undo-toast" role="status" aria-live="polite" hidden><span>備忘錄已刪除</span><button id="undo-delete" type="button">復原</button></div>
+  <div class="privacy-screen" id="privacy-screen" hidden>
+    <div><span class="privacy-mark" aria-hidden="true">E</span><p class="eyebrow">PRIVACY SCREEN</p><h2>備忘錄內容已隱藏</h2><p>這只能避免旁人直接看到畫面，不代表資料已加密。</p><button class="primary-button" id="privacy-reveal" type="button">顯示備忘錄</button></div>
+  </div>
+  <div class="local-storage-dialog" id="local-storage-dialog" role="dialog" aria-modal="true" aria-labelledby="local-dialog-title" aria-describedby="local-dialog-description" hidden>
+    <div class="local-storage-dialog-card">
+      <p class="eyebrow">LOCAL STORAGE NOTICE</p>
+      <h2 id="local-dialog-title">使用前請先了解資料保存方式</h2>
+      <div id="local-dialog-description">
+        <p><strong>備忘錄只會保存在目前裝置的這個瀏覽器。</strong></p>
+        <ul>
+          <li>不會上傳至 GitHub，也沒有帳號或雲端同步功能。</li>
+          <li>換裝置、換瀏覽器或使用無痕模式時，不會顯示原有內容。</li>
+          <li>清除瀏覽器網站資料後，內容可能永久遺失，請定期匯出備份。</li>
+          <li>請勿記錄客戶個資、病歷、保單號碼或其他敏感資料。</li>
+        </ul>
+      </div>
+      <button class="primary-button" id="local-storage-accept" type="button">我已了解，開始使用</button>
+    </div>
+  </div>
   <div class="screen-reader-status" id="live-status" aria-live="polite"></div>
-  <script src="./javascript/main.js?v=2.0.1" defer></script>
+  <script src="./javascript/main.js?v=2.2.0" defer></script>
 </body>
 </html>
