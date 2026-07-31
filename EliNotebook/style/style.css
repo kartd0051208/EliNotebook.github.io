@@ -54,4 +54,7 @@ a{color:inherit;text-decoration:none}
 .category-border-yellow{border-left-color:#a2872e!important}.category-border-lime{border-left-color:#71883f!important}.category-border-teal{border-left-color:#347f78!important}.category-border-cyan{border-left-color:#3f8296!important}.category-border-indigo{border-left-color:#5665a6!important}.category-border-violet{border-left-color:#8a61a4!important}.category-border-brown{border-left-color:#8a6650!important}.category-border-slate{border-left-color:#64727c!important}
 .category-color-yellow{--category-color:#a2872e}.category-color-lime{--category-color:#71883f}.category-color-teal{--category-color:#347f78}.category-color-cyan{--category-color:#3f8296}.category-color-indigo{--category-color:#5665a6}.category-color-violet{--category-color:#8a61a4}.category-color-brown{--category-color:#8a6650}.category-color-slate{--category-color:#64727c}
 .category-point-yellow{--category-point:#a2872e}.category-point-lime{--category-point:#71883f}.category-point-teal{--category-point:#347f78}.category-point-cyan{--category-point:#3f8296}.category-point-indigo{--category-point:#5665a6}.category-point-violet{--category-point:#8a61a4}.category-point-brown{--category-point:#8a6650}.category-point-slate{--category-point:#64727c}
+
+/* 3.7.2：直排中文保持正向且由上往下閱讀；移除造成字形倒轉的180度旋轉。 */
+.axis-important,.axis-not-important{writing-mode:vertical-rl;text-orientation:upright;transform:none}
 @media print{.completion-dashboard,.quadrant-map-card{box-shadow:none}.quadrant-point{print-color-adjust:exact}}
