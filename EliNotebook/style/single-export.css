@@ -1,0 +1,16 @@
+.single-export-dialog{position:fixed;inset:0;z-index:1100;display:grid;place-items:center;padding:20px;background:rgba(25,29,27,.72);backdrop-filter:blur(8px)}
+.single-export-dialog[hidden]{display:none}
+.single-export-card{position:relative;width:min(620px,100%);max-height:min(760px,calc(100vh - 40px));overflow:auto;padding:clamp(25px,5vw,42px);background:var(--paper);border:1px solid var(--line);box-shadow:0 24px 70px rgba(0,0,0,.28)}
+.single-export-card h2{margin:7px 40px 8px 0;font:500 clamp(25px,4vw,34px) "Noto Serif TC","Songti TC",serif}
+.single-export-card>p:not(.eyebrow){color:var(--muted);font-size:12px;line-height:1.75}
+.single-export-close{position:absolute;top:16px;right:16px;width:36px;height:36px;border:1px solid var(--line);background:transparent;color:var(--muted);font-size:22px;line-height:1}
+.single-export-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:24px 0 18px}
+.single-export-grid button{display:grid;gap:5px;min-height:84px;padding:15px;background:var(--surface);border:1px solid var(--line);color:var(--ink);text-align:left}
+.single-export-grid button:hover,.single-export-grid button:focus-visible{border-color:var(--gold);transform:translateY(-1px)}
+.single-export-grid strong{font-size:13px}.single-export-grid small{color:var(--muted);font-size:10px}
+.single-export-grid button[disabled]{cursor:wait;opacity:.55;transform:none}
+.single-export-warning{padding:11px 13px;background:color-mix(in srgb,var(--danger) 8%,var(--surface));border-left:3px solid var(--danger)}
+.single-export-status{min-height:20px;margin-bottom:0!important;color:var(--deep)!important;font-weight:700}
+.single-export-print-frame{position:fixed;left:-10000px;top:0;width:794px;height:1123px;border:0;visibility:hidden}
+@media(max-width:640px){.single-export-dialog{align-items:end;padding:0}.single-export-card{width:100%;max-height:88vh;padding:26px 18px 28px;border-radius:18px 18px 0 0}.single-export-grid{grid-template-columns:1fr 1fr}.single-export-grid button{min-height:76px}}
+

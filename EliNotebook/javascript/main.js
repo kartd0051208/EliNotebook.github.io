@@ -1,10 +1,12 @@
 "use strict";
 
-// EliNotebook 3.6
+// EliNotebook 3.7
 // 資料只會儲存在目前瀏覽器的 localStorage，不會上傳至伺服器。
 // 舊版高／中／低優先程度會自動轉換成「緊急性 × 重要性」，原有備忘錄不會被刪除。
 
 window.addEventListener("DOMContentLoaded", () => {
+  const NotesAnalytics = window.EliNotesAnalytics;
+  if (!NotesAnalytics) { console.error("備忘錄分析核心未載入，已停止啟動備忘錄功能。"); return; }
   const STORAGE_KEY = "eliNotebook.tasks.v2";
   const LEGACY_STORAGE_KEY = "eliNotebook.tasks.v1";
   const CATEGORIES_KEY = "eliNotebook.noteCategories.v1";
@@ -12,15 +14,64 @@ window.addEventListener("DOMContentLoaded", () => {
   const PRIVACY_DELAY_KEY = "eliNotebook.privacyDelay.v1";
   // 只記錄使用者已閱讀本機儲存說明，不包含備忘錄內容或個人資料。
   const LOCAL_NOTICE_KEY = "eliNotebook.localNotice.v1";
+  // 單則備忘錄最多10,000字；新增、編輯、匯入與還原都共用此上限，避免不同流程互相截斷。
+  const MAX_NOTE_LENGTH = 10000;
   // 顏色使用固定色票代碼，避免任意色碼造成文字看不清楚或破壞深色模式。
-  const CATEGORY_COLORS = ["red", "orange", "gold", "green", "blue", "purple", "pink", "gray"];
-  const CATEGORY_COLOR_LABELS = { red: "紅色", orange: "橘色", gold: "金色", green: "綠色", blue: "藍色", purple: "紫色", pink: "粉色", gray: "灰色" };
+  const CATEGORY_COLORS = ["red", "orange", "gold", "yellow", "lime", "green", "teal", "cyan", "blue", "indigo", "purple", "violet", "pink", "brown", "slate", "gray"];
+  const CATEGORY_COLOR_LABELS = { red: "紅色", orange: "橘色", gold: "金色", yellow: "黃色", lime: "萊姆綠", green: "綠色", teal: "藍綠色", cyan: "青色", blue: "藍色", indigo: "靛藍色", purple: "紫色", violet: "紫羅蘭", pink: "粉色", brown: "棕色", slate: "石板灰", gray: "灰色" };
   const DEFAULT_CATEGORIES = [
     { name: "工作", color: "blue", custom: false },
+    { name: "今日重點", color: "red", custom: false },
+    { name: "本週目標", color: "orange", custom: false },
+    { name: "專案", color: "indigo", custom: false },
+    { name: "會議", color: "purple", custom: false },
+    { name: "待辦", color: "gold", custom: false },
+    { name: "追蹤", color: "teal", custom: false },
+    { name: "回覆", color: "cyan", custom: false },
+    { name: "文件", color: "slate", custom: false },
+    { name: "行政", color: "gray", custom: false },
     { name: "客戶聯繫", color: "orange", custom: false },
     { name: "理賠", color: "red", custom: false },
     { name: "保單整理", color: "gold", custom: false },
+    { name: "續保提醒", color: "yellow", custom: false },
+    { name: "服務追蹤", color: "teal", custom: false },
+    { name: "教育訓練", color: "violet", custom: false },
     { name: "個人", color: "green", custom: false },
+    { name: "家庭", color: "pink", custom: false },
+    { name: "居家", color: "brown", custom: false },
+    { name: "採買", color: "orange", custom: false },
+    { name: "行程", color: "cyan", custom: false },
+    { name: "旅行", color: "blue", custom: false },
+    { name: "生日", color: "pink", custom: false },
+    { name: "人際", color: "violet", custom: false },
+    { name: "健康", color: "green", custom: false },
+    { name: "運動", color: "lime", custom: false },
+    { name: "飲食", color: "orange", custom: false },
+    { name: "睡眠", color: "indigo", custom: false },
+    { name: "就醫", color: "red", custom: false },
+    { name: "財務", color: "gold", custom: false },
+    { name: "記帳", color: "yellow", custom: false },
+    { name: "繳費", color: "red", custom: false },
+    { name: "預算", color: "teal", custom: false },
+    { name: "儲蓄", color: "green", custom: false },
+    { name: "投資", color: "blue", custom: false },
+    { name: "學習", color: "purple", custom: false },
+    { name: "閱讀", color: "indigo", custom: false },
+    { name: "課程", color: "violet", custom: false },
+    { name: "練習", color: "cyan", custom: false },
+    { name: "靈感", color: "yellow", custom: false },
+    { name: "創作", color: "pink", custom: false },
+    { name: "語言", color: "teal", custom: false },
+    { name: "習慣", color: "lime", custom: false },
+    { name: "目標", color: "red", custom: false },
+    { name: "反思", color: "slate", custom: false },
+    { name: "感恩", color: "pink", custom: false },
+    { name: "娛樂", color: "purple", custom: false },
+    { name: "收藏", color: "brown", custom: false },
+    { name: "維修", color: "orange", custom: false },
+    { name: "寵物", color: "green", custom: false },
+    { name: "社群", color: "blue", custom: false },
+    { name: "志工", color: "teal", custom: false },
     { name: "其他", color: "gray", custom: false }
   ];
   const QUADRANT_LABELS = {
@@ -59,6 +110,12 @@ window.addEventListener("DOMContentLoaded", () => {
     totalCount: document.querySelector("#total-count"),
     pendingCount: document.querySelector("#pending-count"),
     completedCount: document.querySelector("#completed-count"),
+    homeMonthCompleted: document.querySelector("#home-month-completed-count"),
+    journeyTotal: document.querySelector("#journey-total-completed"), journeyMonth: document.querySelector("#journey-month-completed"), journeyMonthLabel: document.querySelector("#journey-month-label"),
+    journeyMonthComparison: document.querySelector("#journey-month-comparison"), journeyPreviousMonth: document.querySelector("#journey-previous-month-value"),
+    journeyYear: document.querySelector("#journey-year-completed"), journeyYearLabel: document.querySelector("#journey-year-label"), journeyComparison: document.querySelector("#journey-year-comparison"),
+    journeyPriorYear: document.querySelector("#journey-prior-year-value"), journeyMessage: document.querySelector("#completion-message"), journeyTwelveMonthComparison: document.querySelector("#journey-twelve-month-comparison"),
+    completionTrendChart: document.querySelector("#completion-trend-chart"), quadrantPointLayer: document.querySelector("#quadrant-point-layer"), quadrantMapLegend: document.querySelector("#quadrant-map-legend"),
     exportJson: document.querySelector("#export-json"),
     exportCsv: document.querySelector("#export-csv"),
     exportText: document.querySelector("#export-text"),
@@ -204,14 +261,14 @@ window.addEventListener("DOMContentLoaded", () => {
   // 把外部匯入或舊版資料整理成系統可接受的格式，避免錯誤欄位破壞畫面。
   function normalizeTask(value) {
     if (typeof value === "string") {
-      const content = value.trim().slice(0, 500);
+      const content = value.trim().slice(0, MAX_NOTE_LENGTH);
       if (!content) return null;
       const timestamp = nowIso();
-      return { id: createId(), content, category: "其他", urgent: false, important: true, completed: false, createdAt: timestamp, updatedAt: timestamp };
+      return { id: createId(), content, category: "其他", urgent: false, important: true, completed: false, completedAt: null, createdAt: timestamp, updatedAt: timestamp };
     }
 
     if (!value || typeof value !== "object") return null;
-    const content = typeof value.content === "string" ? value.content.trim().slice(0, 500) : "";
+    const content = typeof value.content === "string" ? value.content.trim().slice(0, MAX_NOTE_LENGTH) : "";
     if (!content) return null;
     const createdAt = Number.isNaN(Date.parse(value.createdAt)) ? nowIso() : value.createdAt;
     const updatedAt = Number.isNaN(Date.parse(value.updatedAt)) ? createdAt : value.updatedAt;
@@ -224,6 +281,10 @@ window.addEventListener("DOMContentLoaded", () => {
       urgent: typeof value.urgent === "boolean" ? value.urgent : legacyPriority === "high",
       important: typeof value.important === "boolean" ? value.important : legacyPriority !== "low",
       completed: value.completed === true,
+      // 3.7以前沒有completedAt；舊的已完成事項以最後修改時間作為近似完成時間，內容不會遺失。
+      completedAt: value.completed === true
+        ? (Number.isNaN(Date.parse(value.completedAt)) ? updatedAt : value.completedAt)
+        : null,
       createdAt,
       updatedAt
     };
@@ -317,6 +378,7 @@ window.addEventListener("DOMContentLoaded", () => {
       createMeta(QUADRANT_LABELS[quadrantKey(task)], `quadrant-badge quadrant-${quadrantKey(task)}`),
       createMeta(`建立 ${formatDate(task.createdAt)}`)
     );
+    if (task.completedAt) meta.append(createMeta(`完成 ${formatDate(task.completedAt)}`));
     if (task.updatedAt !== task.createdAt) meta.append(createMeta(`修改 ${formatDate(task.updatedAt)}`));
     content.append(paragraph, meta);
 
@@ -326,18 +388,46 @@ window.addEventListener("DOMContentLoaded", () => {
     edit.type = "button";
     edit.textContent = "編輯";
     edit.setAttribute("aria-label", `編輯：${task.content}`);
+    const exportOne = document.createElement("button");
+    exportOne.type = "button";
+    exportOne.textContent = "匯出";
+    exportOne.setAttribute("aria-label", `匯出：${task.content}`);
     const remove = document.createElement("button");
     remove.type = "button";
     remove.className = "delete";
     remove.textContent = "刪除";
     remove.setAttribute("aria-label", `刪除：${task.content}`);
-    actions.append(edit, remove);
+    actions.append(edit, exportOne, remove);
     card.append(checkbox, content, actions);
 
     checkbox.addEventListener("change", () => toggleCompleted(task.id, checkbox.checked));
     remove.addEventListener("click", () => deleteTask(task.id));
     edit.addEventListener("click", () => openEditor(card, task));
+    exportOne.addEventListener("click", () => exportSingleTask(task));
     return card;
+  }
+
+  // 特性：只把使用者點選的這一則備忘錄交給共用匯出模組。
+  // 效果：其他備忘錄不會被連帶匯出，內容也不會送到外部轉檔網站。
+  function exportSingleTask(task) {
+    if (!window.EliSingleExport) { alert("單筆匯出元件未載入，請重新整理後再試。"); return; }
+    const completedDate = NotesAnalytics.completionDate(task);
+    window.EliSingleExport.open({
+      kind: "note",
+      title: "EliNotebook 單筆備忘錄",
+      filenameBase: `EliNotebook-note-${String(task.id).slice(0, 18)}`,
+      fields: [
+        { label: "內容", value: task.content },
+        { label: "分類", value: task.category },
+        { label: "狀態", value: task.completed ? "已完成" : "待完成" },
+        { label: "緊急性", value: task.urgent ? "緊急" : "不緊急" },
+        { label: "重要性", value: task.important ? "重要" : "不重要" },
+        { label: "四象限", value: QUADRANT_LABELS[quadrantKey(task)] },
+        { label: "建立時間", value: formatDate(task.createdAt) },
+        { label: "修改時間", value: formatDate(task.updatedAt) },
+        { label: "完成時間", value: completedDate ? formatDate(completedDate.toISOString()) : "尚未完成" }
+      ]
+    });
   }
 
   function openEditor(card, task) {
@@ -345,7 +435,7 @@ window.addEventListener("DOMContentLoaded", () => {
     const panel = document.createElement("div");
     panel.className = "edit-panel";
     const textarea = document.createElement("textarea");
-    textarea.maxLength = 500;
+    textarea.maxLength = MAX_NOTE_LENGTH;
     textarea.value = task.content;
     textarea.setAttribute("aria-label", "編輯備忘錄內容");
 
@@ -399,14 +489,15 @@ window.addEventListener("DOMContentLoaded", () => {
     const index = tasks.findIndex((task) => task.id === id);
     if (index < 0) return;
     const previous = { ...tasks[index] };
-    tasks[index] = { ...tasks[index], completed, updatedAt: nowIso() };
+    const timestamp = nowIso();
+    tasks[index] = { ...tasks[index], completed, completedAt: completed ? timestamp : null, updatedAt: timestamp };
     if (!saveTasks()) {
       tasks[index] = previous;
       renderAll();
       return;
     }
     renderAll();
-    announce(completed ? "已標示為完成" : "已重新設為待完成");
+    announce(completed ? "已標示為完成，事項可在「已完成」頁面查看；四象限若只顯示待完成，這一項會暫時隱藏" : "已重新設為待完成，事項已回到待完成清單與四象限");
   }
 
   function deleteTask(id) {
@@ -595,6 +686,84 @@ window.addEventListener("DOMContentLoaded", () => {
     return item;
   }
 
+  function comparisonLabel(comparison) {
+    if (!comparison.previous) return comparison.current ? `新增 ${comparison.current} 件` : "持平";
+    if (!comparison.delta) return "持平";
+    return `${comparison.delta > 0 ? "+" : ""}${comparison.delta} 件`;
+  }
+
+  function renderCompletionJourney() {
+    const now = new Date();
+    const stats = NotesAnalytics.completionStats(tasks, now);
+    const series = NotesAnalytics.monthlyCompletionSeries(tasks, now);
+    elements.homeMonthCompleted.textContent = String(stats.thisMonth);
+    elements.journeyTotal.textContent = String(stats.total);
+    elements.journeyMonth.textContent = String(stats.thisMonth);
+    elements.journeyMonthLabel.textContent = `${now.getFullYear()}年${now.getMonth() + 1}月`;
+    elements.journeyMonthComparison.textContent = comparisonLabel(stats.monthComparison);
+    elements.journeyMonthComparison.className = stats.monthComparison.delta > 0 ? "ahead" : stats.monthComparison.delta < 0 ? "behind" : "";
+    elements.journeyPreviousMonth.textContent = `${stats.previousMonthLabel}完成 ${stats.previousMonth} 件`;
+    elements.journeyYear.textContent = String(stats.thisYear);
+    elements.journeyYearLabel.textContent = `${now.getFullYear()}年累積`;
+    elements.journeyComparison.textContent = comparisonLabel(stats.yearComparison);
+    elements.journeyComparison.className = stats.yearComparison.delta > 0 ? "ahead" : stats.yearComparison.delta < 0 ? "behind" : "";
+    elements.journeyPriorYear.textContent = `去年同期 ${stats.priorYearSamePeriod} 件｜去年全年 ${stats.priorYearFull} 件`;
+    elements.journeyMessage.textContent = stats.total
+      ? `你已經完成 ${stats.total} 件事情，完成率 ${stats.completionRate.toFixed(0)}%。不必一次走完，持續前進就已經在累積。`
+      : "從完成第一件事情開始累積；每一個勾選都會留下你的進度。";
+    const twelveMonthDelta = series.currentTotal - series.previousTotal;
+    elements.journeyTwelveMonthComparison.textContent = `近12月 ${series.currentTotal} 件｜前一年度同期 ${series.previousTotal} 件｜${twelveMonthDelta === 0 ? "持平" : `${twelveMonthDelta > 0 ? "+" : ""}${twelveMonthDelta} 件`}`;
+
+    const maximum = Math.max(1, ...series.months.flatMap((item) => [item.current, item.previous]));
+    const columns = series.months.map((item) => {
+      const column = document.createElement("div"); column.className = "completion-month";
+      const values = document.createElement("span"); values.className = "completion-month-values"; values.textContent = `${item.current}｜${item.previous}`; values.title = `${item.year}年${item.label}：完成${item.current}件；前一年同月${item.previous}件`;
+      const bars = document.createElement("div"); bars.className = "completion-bars";
+      const previous = document.createElement("i"); previous.className = "completion-bar previous"; previous.style.setProperty("--bar-height", `${item.previous / maximum * 100}%`);
+      const current = document.createElement("i"); current.className = "completion-bar current"; current.style.setProperty("--bar-height", `${item.current / maximum * 100}%`);
+      const label = document.createElement("small"); label.textContent = item.label;
+      bars.append(previous, current); column.append(values, bars, label); return column;
+    });
+    elements.completionTrendChart.replaceChildren(...columns);
+  }
+
+  function openTaskFromQuadrantPoint(taskId) {
+    const task = tasks.find((item) => item.id === taskId);
+    if (!task) return;
+    elements.search.value = "";
+    elements.categoryFilter.value = "all";
+    elements.statusFilter.value = "all";
+    elements.sortFilter.value = "updated";
+    renderAll();
+    changeView("notes");
+    const card = [...elements.allTasks.querySelectorAll("[data-task-id]")].find((item) => item.dataset.taskId === taskId);
+    if (!card) return;
+    card.classList.add("chart-focus");
+    card.scrollIntoView({ behavior: "smooth", block: "center" });
+    openEditor(card, task);
+    window.setTimeout(() => card.classList.remove("chart-focus"), 2400);
+    announce(`已開啟「${task.content.slice(0, 30)}」的編輯區`);
+  }
+
+  function renderQuadrantMap(source) {
+    const distribution = NotesAnalytics.quadrantDistribution(source);
+    const points = distribution.points.map((point, index) => {
+      const categoryInfo = categoryDefinition(point.task.category);
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = `quadrant-point category-point-${categoryInfo.color}${point.task.completed ? " completed" : ""}`;
+      button.style.left = `${point.x}%`; button.style.top = `${point.y}%`;
+      button.title = `${point.task.content}｜${QUADRANT_LABELS[point.quadrant]}｜點擊編輯`;
+      button.setAttribute("aria-label", `第${index + 1}點：${point.task.content}，${QUADRANT_LABELS[point.quadrant]}，點擊前往編輯`);
+      button.addEventListener("click", () => openTaskFromQuadrantPoint(point.task.id));
+      return button;
+    });
+    elements.quadrantPointLayer.replaceChildren(...points);
+    elements.quadrantMapLegend.textContent = source.length
+      ? `目前顯示 ${source.length} 件｜Q1 ${distribution.counts.q1}｜Q2 ${distribution.counts.q2}｜Q3 ${distribution.counts.q3}｜Q4 ${distribution.counts.q4}`
+      : "目前篩選條件下沒有可顯示的事項。";
+  }
+
   function renderMatrix() {
     const status = elements.matrixStatusFilter.value;
     const source = tasks.filter((task) => status === "all" || (status === "completed" ? task.completed : !task.completed));
@@ -609,6 +778,7 @@ window.addEventListener("DOMContentLoaded", () => {
         elements.quadrantLists[key].append(empty);
       } else list.forEach((task) => elements.quadrantLists[key].append(createMatrixTask(task)));
     });
+    renderQuadrantMap(source);
   }
 
   function renderAll() {
@@ -617,6 +787,7 @@ window.addEventListener("DOMContentLoaded", () => {
     elements.totalCount.textContent = String(tasks.length);
     elements.pendingCount.textContent = String(tasks.filter((task) => !task.completed).length);
     elements.completedCount.textContent = String(tasks.filter((task) => task.completed).length);
+    renderCompletionJourney();
 
     const recent = [...tasks].sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt)).slice(0, 3);
     renderList(elements.recentTasks, recent, "目前沒有備忘錄", "從上方輸入第一則內容開始使用。" );
@@ -659,7 +830,7 @@ window.addEventListener("DOMContentLoaded", () => {
     const task = {
       id: createId(), content, category: elements.category.value,
       urgent: elements.urgency.value === "true", important: elements.importance.value === "true",
-      completed: false, createdAt: timestamp, updatedAt: timestamp
+      completed: false, completedAt: null, createdAt: timestamp, updatedAt: timestamp
     };
     tasks.unshift(task);
     if (!saveTasks()) {
@@ -669,7 +840,7 @@ window.addEventListener("DOMContentLoaded", () => {
     elements.quickAddForm.reset();
     elements.urgency.value = "false";
     elements.importance.value = "true";
-    elements.characterCount.textContent = "0 / 500";
+    elements.characterCount.textContent = `0 / ${MAX_NOTE_LENGTH.toLocaleString("zh-TW")}`;
     renderAll();
     announce("備忘錄新增完成");
   }
@@ -692,7 +863,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
   function exportJson() {
     if (!window.confirm("匯出的 JSON 會包含全部備忘錄內容。請勿放進公開 GitHub、雲端共享資料夾或傳給他人。\n\n確定要下載嗎？")) return;
-    const backup = { app: "EliNotebook", version: 3, exportedAt: nowIso(), categories, tasks };
+    const backup = { app: "EliNotebook", version: 4, exportedAt: nowIso(), categories, tasks };
     downloadFile(`EliNotebook-backup-${fileDate()}.json`, JSON.stringify(backup, null, 2), "application/json;charset=utf-8");
     announce("完整 JSON 備份已下載");
   }
@@ -701,7 +872,7 @@ window.addEventListener("DOMContentLoaded", () => {
     if (!window.confirm("匯出的文字檔可以直接閱讀。請勿放進公開 GitHub 或分享給他人。\n\n確定要下載嗎？")) return;
     const lines = tasks.map((task, index) => [
       `${index + 1}. [${task.completed ? "已完成" : "待完成"}] ${task.content}`,
-      `   分類：${task.category}｜${task.urgent ? "緊急" : "不緊急"}｜${task.important ? "重要" : "不重要"}｜${QUADRANT_LABELS[quadrantKey(task)]}｜建立：${formatDate(task.createdAt)}`
+      `   分類：${task.category}｜${task.urgent ? "緊急" : "不緊急"}｜${task.important ? "重要" : "不重要"}｜${QUADRANT_LABELS[quadrantKey(task)]}｜建立：${formatDate(task.createdAt)}${task.completedAt ? `｜完成：${formatDate(task.completedAt)}` : ""}`
     ].join("\n"));
     const content = `EliNotebook 備忘錄\n匯出時間：${formatDate(nowIso())}\n總計：${tasks.length} 則\n\n${lines.join("\n\n")}`;
     downloadFile(`EliNotebook-${fileDate()}.txt`, content, "text/plain;charset=utf-8");
@@ -712,14 +883,13 @@ window.addEventListener("DOMContentLoaded", () => {
     return window.confirm(`匯出的 ${format} 檔會包含備忘錄內容，且不會加密。請勿放進公開 GitHub 或分享給他人。\n\n確定要下載嗎？`);
   }
 
-  function csvCell(value) {
-    return `"${String(value ?? "").replace(/"/g, '""')}"`;
-  }
+  function spreadsheetSafeText(value) { const text = String(value ?? ""); return /^[=+\-@]/.test(text.trimStart()) ? `'${text}` : text; }
+  function csvCell(value) { return `"${spreadsheetSafeText(value).replace(/"/g, '""')}"`; }
 
   function exportCsv() {
     if (!confirmExport("CSV")) return;
-    const header = ["內容", "分類", "分類顏色", "緊急性", "重要性", "四象限", "狀態", "建立時間", "修改時間"];
-    const rows = tasks.map((task) => [task.content, task.category, categoryDefinition(task.category).color, task.urgent ? "緊急" : "不緊急", task.important ? "重要" : "不重要", QUADRANT_LABELS[quadrantKey(task)], task.completed ? "已完成" : "待完成", task.createdAt, task.updatedAt]);
+    const header = ["內容", "分類", "分類顏色", "緊急性", "重要性", "四象限", "狀態", "建立時間", "修改時間", "完成時間"];
+    const rows = tasks.map((task) => [task.content, task.category, categoryDefinition(task.category).color, task.urgent ? "緊急" : "不緊急", task.important ? "重要" : "不重要", QUADRANT_LABELS[quadrantKey(task)], task.completed ? "已完成" : "待完成", task.createdAt, task.updatedAt, task.completedAt || ""]);
     const content = `\uFEFF${[header, ...rows].map((row) => row.map(csvCell).join(",")).join("\r\n")}`;
     downloadFile(`EliNotebook-${fileDate()}.csv`, content, "text/csv;charset=utf-8");
     announce("CSV 已下載");
@@ -727,7 +897,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
   function exportMarkdown() {
     if (!confirmExport("Markdown")) return;
-    const rows = tasks.map((task) => `- [${task.completed ? "x" : " "}] ${task.content.replace(/\n/g, " ")}  \n  分類：${task.category}｜${task.urgent ? "緊急" : "不緊急"}｜${task.important ? "重要" : "不重要"}｜${QUADRANT_LABELS[quadrantKey(task)]}｜建立：${formatDate(task.createdAt)}`);
+    const rows = tasks.map((task) => `- [${task.completed ? "x" : " "}] ${task.content.replace(/\n/g, " ")}  \n  分類：${task.category}｜${task.urgent ? "緊急" : "不緊急"}｜${task.important ? "重要" : "不重要"}｜${QUADRANT_LABELS[quadrantKey(task)]}｜建立：${formatDate(task.createdAt)}${task.completedAt ? `｜完成：${formatDate(task.completedAt)}` : ""}`);
     const content = `# EliNotebook 備忘錄\n\n匯出時間：${formatDate(nowIso())}\n\n${rows.join("\n\n")}`;
     downloadFile(`EliNotebook-${fileDate()}.md`, content, "text/markdown;charset=utf-8");
     announce("Markdown 已下載");
@@ -741,7 +911,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
   function exportHtml() {
     if (!confirmExport("HTML")) return;
-    const items = tasks.map((task) => `<li><strong>${task.completed ? "已完成" : "待完成"}</strong><p>${escapeHtml(task.content).replace(/\n/g, "<br>")}</p><small>${escapeHtml(task.category)}｜${task.urgent ? "緊急" : "不緊急"}｜${task.important ? "重要" : "不重要"}｜${escapeHtml(QUADRANT_LABELS[quadrantKey(task)])}｜${escapeHtml(formatDate(task.createdAt))}</small></li>`).join("");
+    const items = tasks.map((task) => `<li><strong>${task.completed ? "已完成" : "待完成"}</strong><p>${escapeHtml(task.content).replace(/\n/g, "<br>")}</p><small>${escapeHtml(task.category)}｜${task.urgent ? "緊急" : "不緊急"}｜${task.important ? "重要" : "不重要"}｜${escapeHtml(QUADRANT_LABELS[quadrantKey(task)])}｜建立：${escapeHtml(formatDate(task.createdAt))}${task.completedAt ? `｜完成：${escapeHtml(formatDate(task.completedAt))}` : ""}</small></li>`).join("");
     const content = `<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EliNotebook 匯出</title><style>body{max-width:800px;margin:40px auto;padding:0 20px;font-family:sans-serif;line-height:1.7}li{margin:0 0 24px}p{margin:4px 0}small{color:#666}</style></head><body><h1>EliNotebook 備忘錄</h1><p>匯出時間：${escapeHtml(formatDate(nowIso()))}</p><ol>${items}</ol></body></html>`;
     downloadFile(`EliNotebook-${fileDate()}.html`, content, "text/html;charset=utf-8");
     announce("HTML 已下載");
@@ -789,7 +959,8 @@ window.addEventListener("DOMContentLoaded", () => {
         important: importanceValue ? /^(重要|true|1|yes)$/i.test(importanceValue) : undefined,
         completed: /^(已完成|true|1|yes|x)$/i.test(get(/^(狀態|status|completed)$/i)),
         createdAt: get(/^(建立時間|createdAt|created)$/i) || timestamp,
-        updatedAt: get(/^(修改時間|updatedAt|updated)$/i) || timestamp
+        updatedAt: get(/^(修改時間|updatedAt|updated)$/i) || timestamp,
+        completedAt: get(/^(完成時間|completedAt|completionDate)$/i) || undefined
       });
     }).filter(Boolean);
   }
@@ -798,17 +969,31 @@ window.addEventListener("DOMContentLoaded", () => {
     if (extension === "html" || extension === "htm") {
       const documentCopy = new DOMParser().parseFromString(text, "text/html");
       documentCopy.querySelectorAll("script,style,noscript,template").forEach((node) => node.remove());
-      const selected = [...documentCopy.querySelectorAll("li")].map((node) => node.querySelector("p")?.textContent || node.textContent);
-      text = selected.length ? selected.join("\n") : documentCopy.body.textContent || "";
+      const selected = [...documentCopy.querySelectorAll("li")].slice(0, 2000).map((node) => {
+        const content = (node.querySelector("p")?.textContent || node.textContent || "").trim();
+        const completed = /已完成/.test(node.querySelector("strong")?.textContent || "");
+        return normalizeTask({ content, completed, completedAt: completed ? nowIso() : null });
+      }).filter(Boolean);
+      if (selected.length) return selected;
+      text = documentCopy.body.textContent || "";
     }
-    let lines = text.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+    const lines = text.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
     if (extension === "md" || extension === "markdown") {
-      lines = lines.filter((line) => /^[-*+]\s+(?:\[[ xX]\]\s*)?/.test(line)).map((line) => line.replace(/^[-*+]\s+(?:\[[ xX]\]\s*)?/, ""));
-    } else {
-      const numbered = lines.filter((line) => /^\d+\.\s+(?:\[(?:已完成|待完成)\]\s*)?/.test(line));
-      lines = numbered.length ? numbered.map((line) => line.replace(/^\d+\.\s+(?:\[(?:已完成|待完成)\]\s*)?/, "")) : lines;
+      return lines.filter((line) => /^[-*+]\s+(?:\[[ xX]\]\s*)?/.test(line)).slice(0, 2000).map((line) => {
+        const match = /^[-*+]\s+(?:\[([ xX])\]\s*)?(.*)$/.exec(line);
+        const completed = Boolean(match?.[1] && /x/i.test(match[1]));
+        return normalizeTask({ content: match?.[2] || "", completed, completedAt: completed ? nowIso() : null });
+      }).filter(Boolean);
     }
-    return lines.slice(0, 2000).map((content) => normalizeTask(content)).filter(Boolean);
+    {
+      const numbered = lines.filter((line) => /^\d+\.\s+(?:\[(?:已完成|待完成)\]\s*)?/.test(line));
+      const source = numbered.length ? numbered : lines;
+      return source.slice(0, 2000).map((line) => {
+        const completed = /^\d+\.\s+\[已完成\]/.test(line);
+        const content = line.replace(/^\d+\.\s+(?:\[(?:已完成|待完成)\]\s*)?/, "");
+        return normalizeTask({ content, completed, completedAt: completed ? nowIso() : null });
+      }).filter(Boolean);
+    }
   }
 
   function importFile(event) {
@@ -1007,7 +1192,7 @@ window.addEventListener("DOMContentLoaded", () => {
   elements.quickAddForm.addEventListener("submit", addTask);
   elements.noteCategoryForm.addEventListener("submit", addCategory);
   elements.input.addEventListener("input", () => {
-    elements.characterCount.textContent = `${elements.input.value.length} / 500`;
+    elements.characterCount.textContent = `${elements.input.value.length.toLocaleString("zh-TW")} / ${MAX_NOTE_LENGTH.toLocaleString("zh-TW")}`;
     const findings = detectSensitiveData(elements.input.value);
     elements.inputSafety.classList.toggle("warning", findings.length > 0);
     elements.inputSafety.textContent = findings.length

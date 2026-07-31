@@ -1,6 +1,6 @@
 "use strict";
 
-// EliNotebook 3.6 私人財務中心：加密帳務、歷年分析、資金試算、分期管理與安全試算表匯入。
+// EliNotebook 3.7 私人財務中心：加密帳務、歷年分析、資金試算、分期管理、安全匯入與單筆匯出。
 // 帳務資料以AES-256-GCM加密後保存在目前瀏覽器，不會傳送到GitHub或任何伺服器。
 window.addEventListener("DOMContentLoaded", () => {
   const FinanceCore = window.EliFinanceCore;
@@ -206,6 +206,8 @@ window.addEventListener("DOMContentLoaded", () => {
 
   function lockFinance(message = "私人財務中心已上鎖，請重新輸入財務密碼。") {
     if (!financeUnlocked && elements.financeContent.hidden) return;
+    // 上鎖時同步關閉單筆匯出視窗，清除模組記憶體中暫存的已解密單筆資料。
+    window.EliSingleExport?.close();
     clearImportPreview();
     if (activeImportWorker) { activeImportWorker.terminate(); activeImportWorker = null; }
     financeUnlocked = false;
@@ -562,8 +564,36 @@ window.addEventListener("DOMContentLoaded", () => {
     const amount = document.createElement("b"); amount.textContent = `${transaction.type === "income" ? "+" : transaction.type === "expense" ? "−" : "↔"}${money(transaction.amount)}`;
     const actions = document.createElement("div"); actions.className = "transaction-actions";
     const edit = document.createElement("button"); edit.type = "button"; edit.textContent = "修改"; edit.addEventListener("click", () => editTransaction(transaction.id));
+    const exportOne = document.createElement("button"); exportOne.type = "button"; exportOne.textContent = "匯出"; exportOne.addEventListener("click", () => exportSingleTransaction(transaction));
     const remove = document.createElement("button"); remove.type = "button"; remove.textContent = "刪除"; remove.addEventListener("click", () => deleteTransaction(transaction.id));
-    actions.append(edit, remove); card.append(main, amount, actions); return card;
+    actions.append(edit, exportOne, remove); card.append(main, amount, actions); return card;
+  }
+
+  // 特性：只匯出使用者點選的一筆已解鎖交易，並交由共用模組在本機建立檔案。
+  // 效果：不會解密或匯出整本帳簿；下載前還會再次提醒匯出檔本身沒有加密。
+  function exportSingleTransaction(transaction) {
+    if (!financeUnlocked) { alert("請先解鎖私人財務中心。"); return; }
+    if (!window.EliSingleExport) { alert("單筆匯出元件未載入，請重新整理後再試。"); return; }
+    const formatTimestamp = (value) => {
+      const date = new Date(value);
+      return Number.isNaN(date.getTime()) ? "無紀錄" : date.toLocaleString("zh-TW", { hour12: false });
+    };
+    window.EliSingleExport.open({
+      kind: "finance",
+      title: "EliNotebook 單筆財務紀錄",
+      filenameBase: `EliNotebook-finance-${transaction.date}-${String(transaction.id).slice(0, 14)}`,
+      fields: [
+        { label: "日期", value: transaction.date },
+        { label: "類型", value: TYPE_LABEL[transaction.type] },
+        { label: "分類", value: transaction.category },
+        { label: "金額", value: String(transaction.amount), spreadsheetValue: transaction.amount },
+        { label: "帳戶", value: accountName(transaction.accountId) },
+        { label: "轉入帳戶", value: transaction.toAccountId ? accountName(transaction.toAccountId) : "不適用" },
+        { label: "備註", value: transaction.note || "（無）" },
+        { label: "建立時間", value: formatTimestamp(transaction.createdAt) },
+        { label: "修改時間", value: formatTimestamp(transaction.updatedAt) }
+      ]
+    });
   }
 
   function filteredTransactions() {

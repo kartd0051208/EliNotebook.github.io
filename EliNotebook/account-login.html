@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="referrer" content="no-referrer">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta name="theme-color" content="#37413a">
+  <title>EliNotebook｜私人帳號登入</title>
+  <link rel="stylesheet" href="./style/auth.css?v=1.0.0">
+</head>
+<body data-auth-page="login">
+  <main class="auth-shell">
+    <section class="auth-card" aria-labelledby="auth-title">
+      <a class="auth-brand" href="../index.html"><span>E</span><div><strong>EliNotebook</strong><small>INVITE ONLY ACCOUNT</small></div></a>
+      <p class="eyebrow">PRIVATE ACCOUNT</p>
+      <h1 id="auth-title">私人帳號登入</h1>
+      <p class="auth-intro">不開放公開註冊。只有由管理後台建立、並完成信箱驗證的帳號可以登入。</p>
+
+      <form id="account-login-form" class="auth-form">
+        <label>註冊信箱<input name="email" type="email" maxlength="254" autocomplete="username" inputmode="email" required></label>
+        <label>帳號密碼<input name="password" type="password" minlength="15" maxlength="64" autocomplete="current-password" required></label>
+        <button class="primary-button" type="submit">安全登入</button>
+        <button class="text-button" id="show-forgot-password" type="button">忘記帳號密碼</button>
+      </form>
+
+      <form id="forgot-password-form" class="auth-form" hidden>
+        <label>註冊信箱<input name="email" type="email" maxlength="254" autocomplete="username" inputmode="email" required></label>
+        <p>重設連結只會送到帳號原本已驗證的信箱；不能在重設畫面改成其他收件地址。</p>
+        <button class="primary-button" type="submit">申請一次性重設連結</button>
+        <button class="text-button" id="back-to-login" type="button">返回登入</button>
+      </form>
+
+      <p class="auth-status" id="auth-status" role="status" aria-live="polite"></p>
+      <aside><strong>目前建置階段</strong><p>帳號後端未啟用時，此頁不會寄送任何信件，也不會影響原本的本機財務中心。請勿把service_role、SMTP或簡訊密鑰放進GitHub。</p></aside>
+      <a class="local-link" href="./index1.html">返回目前的本機版EliNotebook</a>
+    </section>
+  </main>
+  <script src="./javascript/auth-config.js"></script>
+  <script src="./vendor/supabase/supabase.js"></script>
+  <script src="./javascript/auth-client.js" defer></script>
+</body>
+</html>

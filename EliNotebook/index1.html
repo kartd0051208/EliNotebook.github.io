@@ -4,14 +4,15 @@
   <meta charset="utf-8">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; worker-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; object-src 'none'; base-uri 'none'; form-action 'none'">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="description" content="EliNotebook 3.6｜可用資金、發薪日倒數、分期管理、歷年比較與安全試算表匯入。">
+  <meta name="description" content="EliNotebook 3.7｜完成旅程、年度比較、互動四象限與私人財務中心。">
   <meta name="referrer" content="no-referrer">
   <meta name="theme-color" content="#37413a">
-  <title>EliNotebook 3.6｜私人工作中心</title>
+  <title>EliNotebook 3.7｜私人工作中心</title>
   <script src="./javascript/auth-config.js"></script>
   <script src="./javascript/auth-bootstrap.js"></script>
-  <link rel="stylesheet" href="./style/style.css?v=3.6.0">
+  <link rel="stylesheet" href="./style/style.css?v=3.7.0">
   <link rel="stylesheet" href="./style/accounting.css?v=3.6.0">
+  <link rel="stylesheet" href="./style/single-export.css?v=3.7.1">
 </head>
 <body>
   <a class="skip-link" href="#main-content">跳至主要內容</a>
@@ -19,7 +20,7 @@
   <header class="topbar">
     <a class="brand" href="../index.html" aria-label="返回葉秀庭個人網頁">
       <span class="brand-mark" aria-hidden="true">E</span>
-      <span><strong>EliNotebook</strong><small>PRIVATE WORKSPACE · 3.6</small></span>
+      <span><strong>EliNotebook</strong><small>PRIVATE WORKSPACE · 3.7</small></span>
     </a>
     <div class="topbar-actions">
       <time id="clock" aria-label="目前時間">載入時間中</time>
@@ -57,12 +58,13 @@
           <article><span>全部</span><strong id="total-count">0</strong><small>則備忘錄</small></article>
           <article><span>待完成</span><strong id="pending-count">0</strong><small>則待處理</small></article>
           <article><span>已完成</span><strong id="completed-count">0</strong><small>則已完成</small></article>
+          <article><span>本月完成</span><strong id="home-month-completed-count">0</strong><small>這個月走過的路</small></article>
         </div>
 
         <form id="quick-add-form" class="composer">
-          <div class="composer-heading"><div><p class="eyebrow">QUICK NOTE</p><h2>新增備忘錄</h2></div><span id="character-count">0 / 500</span></div>
+          <div class="composer-heading"><div><p class="eyebrow">QUICK NOTE</p><h2>新增備忘錄</h2></div><span id="character-count">0 / 10,000</span></div>
           <label for="new-task-input">備忘錄內容</label>
-          <textarea id="new-task-input" maxlength="500" rows="4" placeholder="例如：星期五下午三點整理申請流程（請勿輸入客戶個資）" autocomplete="off" spellcheck="false" required></textarea>
+          <textarea id="new-task-input" maxlength="10000" rows="6" placeholder="例如：星期五下午三點整理申請流程（最多10,000字，請勿輸入客戶個資）" autocomplete="off" spellcheck="false" required></textarea>
           <p class="input-safety" id="input-safety">系統會阻擋身分證、電話、Email、信用卡及明顯的病歷／保單識別資料。</p>
           <div class="composer-options">
             <label>分類<select id="new-task-category"></select></label>
@@ -253,6 +255,18 @@
 
       <section class="view" id="view-matrix" data-view-panel="matrix">
         <div class="page-heading matrix-heading"><div><p class="eyebrow">EISENHOWER MATRIX</p><h1>重要緊急四象限</h1><p>先處理緊急且重要；為重要但不緊急的事項安排時間，避免它變成危機。</p></div><label>顯示狀態<select id="matrix-status-filter"><option value="pending" selected>待完成</option><option value="all">全部</option><option value="completed">已完成</option></select></label></div>
+        <aside class="quadrant-check-help"><strong>勾選後去了哪裡？</strong><p>勾選只會把事項改成「已完成」，不會刪除。它會出現在「已完成事項」；四象限若正顯示「待完成」，該事項會暫時消失，把右上方篩選改成「全部」或「已完成」即可再次看到。</p></aside>
+        <section class="quadrant-map-card" aria-labelledby="quadrant-map-title">
+          <div class="analytics-heading"><div><p class="eyebrow">INTERACTIVE DISTRIBUTION</p><h2 id="quadrant-map-title">事項分佈位置</h2></div><p>每個圓點代表一件事項；點擊圓點會前往該備忘錄並直接開啟編輯。</p></div>
+          <div class="quadrant-map-wrap">
+            <span class="axis-caption axis-important">重要</span><span class="axis-caption axis-not-important">不重要</span><span class="axis-caption axis-urgent">緊急</span><span class="axis-caption axis-not-urgent">不緊急</span>
+            <div class="quadrant-map" id="quadrant-map" role="group" aria-label="可點擊的四象限事項分佈圖">
+              <span class="map-label map-q1">Q1 立即處理</span><span class="map-label map-q2">Q2 安排時間</span><span class="map-label map-q3">Q3 簡化委派</span><span class="map-label map-q4">Q4 延後刪除</span>
+              <div id="quadrant-point-layer" class="quadrant-point-layer"></div>
+            </div>
+          </div>
+          <div id="quadrant-map-legend" class="quadrant-map-legend" aria-live="polite"></div>
+        </section>
         <div class="quadrant-axis-label urgency-axis">左：緊急｜右：不緊急　　上：重要｜下：不重要</div>
         <div class="quadrant-matrix" aria-label="備忘錄重要緊急四象限圖表">
           <article class="quadrant quadrant-q1"><header><span>Q1</span><div><h2>緊急且重要</h2><p>立即處理</p></div><strong id="quadrant-q1-count">0</strong></header><div class="quadrant-task-list" id="quadrant-q1-list"></div></article>
@@ -263,7 +277,19 @@
       </section>
 
       <section class="view" id="view-completed" data-view-panel="completed">
-        <div class="page-heading"><p class="eyebrow">COMPLETED</p><h1>已完成事項</h1><p>保留完成紀錄，也可以重新設為待完成。</p></div>
+        <div class="page-heading"><p class="eyebrow">COMPLETED JOURNEY</p><h1>已完成事項</h1><p>看見累積完成、本月進度與去年同期比較；每一步都算數。</p></div>
+        <section class="completion-dashboard" aria-labelledby="completion-dashboard-title">
+          <div class="analytics-heading"><div><p class="eyebrow">YOUR PROGRESS</p><h2 id="completion-dashboard-title">你已經走過的路</h2></div><p id="completion-message">從完成第一件事情開始累積。</p></div>
+          <div class="completion-metrics">
+            <article><span>累積完成</span><strong id="journey-total-completed">0</strong><small>從開始使用到現在</small></article>
+            <article><span>本月完成</span><strong id="journey-month-completed">0</strong><small id="journey-month-label">本月紀錄</small></article>
+            <article><span>較上個月</span><strong id="journey-month-comparison">持平</strong><small id="journey-previous-month-value">上個月 0 件</small></article>
+            <article><span>今年完成</span><strong id="journey-year-completed">0</strong><small id="journey-year-label">今年累積</small></article>
+            <article><span>較去年同期</span><strong id="journey-year-comparison">持平</strong><small id="journey-prior-year-value">去年同期 0 件</small></article>
+          </div>
+          <div class="journey-chart-heading"><div><h3>近12個月完成趨勢</h3><p id="journey-twelve-month-comparison">與前一年度同期比較</p></div><div class="journey-legend"><span class="current-dot">近12月</span><span class="previous-dot">前一年度</span></div></div>
+          <div id="completion-trend-chart" class="completion-trend-chart" role="img" aria-label="近12個月完成事項與前一年度比較圖"></div>
+        </section>
         <div class="task-list" id="completed-tasks"></div>
       </section>
 
@@ -287,7 +313,7 @@
       <section class="view" id="view-settings" data-view-panel="settings">
         <div class="page-heading"><p class="eyebrow">SETTINGS</p><h1>設定與資料說明</h1><p>了解資料保存位置，以及可執行的本機設定。</p></div>
         <div class="settings-list">
-          <article class="category-manager"><div class="category-manager-heading"><h2>備忘錄分類與顏色</h2><p>新增自己的分類並選擇固定色票；已被備忘錄使用的分類不會允許直接刪除。</p></div><form id="note-category-form" class="category-create-form"><label>分類名稱<input id="note-category-name" maxlength="30" placeholder="例如：學習計畫" required></label><label>分類顏色<select id="note-category-color"><option value="red">紅色</option><option value="orange">橘色</option><option value="gold">金色</option><option value="green" selected>綠色</option><option value="blue">藍色</option><option value="purple">紫色</option><option value="pink">粉色</option><option value="gray">灰色</option></select></label><button class="primary-button" type="submit">新增分類</button></form><div id="note-category-list" class="note-category-list"></div></article>
+          <article class="category-manager"><div class="category-manager-heading"><h2>備忘錄分類與顏色</h2><p>內建50種以上常用分類與16色色票，也可新增自己的分類；原有自訂分類會保留，已被備忘錄使用的分類不會允許直接刪除。</p></div><form id="note-category-form" class="category-create-form"><label>分類名稱<input id="note-category-name" maxlength="30" placeholder="例如：學習計畫" required></label><label>分類顏色<select id="note-category-color"><option value="red">紅色</option><option value="orange">橘色</option><option value="gold">金色</option><option value="yellow">黃色</option><option value="lime">萊姆綠</option><option value="green" selected>綠色</option><option value="teal">藍綠色</option><option value="cyan">青色</option><option value="blue">藍色</option><option value="indigo">靛藍色</option><option value="purple">紫色</option><option value="violet">紫羅蘭</option><option value="pink">粉色</option><option value="brown">棕色</option><option value="slate">石板灰</option><option value="gray">灰色</option></select></label><button class="primary-button" type="submit">新增分類</button></form><div id="note-category-list" class="note-category-list"></div></article>
           <article><div><h2>外觀模式</h2><p>切換淺色或深色模式，選擇會保存在目前瀏覽器。</p></div><button id="settings-theme-toggle" class="secondary-button" type="button">切換外觀</button></article>
           <article><div><h2>本機儲存狀態</h2><p id="storage-status">正在檢查……</p></div><span class="status-badge">localStorage</span></article>
           <article><div><h2>自動隱藏畫面</h2><p>離開分頁時立即遮蔽；停留在頁面但沒有操作時，也會依設定自動遮蔽。</p></div><label class="setting-field">閒置時間<select id="privacy-delay"><option value="60000">1 分鐘</option><option value="120000" selected>2 分鐘</option><option value="300000">5 分鐘</option><option value="0">只在離開分頁時</option></select></label></article>
@@ -321,9 +347,29 @@
     </div>
   </div>
   <div class="screen-reader-status" id="live-status" aria-live="polite"></div>
+  <div class="single-export-dialog" id="single-export-dialog" role="dialog" aria-modal="true" aria-labelledby="single-export-title" aria-describedby="single-export-description" hidden>
+    <div class="single-export-card">
+      <button class="single-export-close" id="single-export-close" type="button" aria-label="關閉匯出格式選擇">×</button>
+      <p class="eyebrow">SINGLE ITEM EXPORT</p>
+      <h2 id="single-export-title">匯出單筆資料</h2>
+      <p id="single-export-description">選擇要使用的檔案格式。轉檔只在目前瀏覽器進行，不會上傳內容。</p>
+      <div class="single-export-grid" aria-label="匯出格式">
+        <button type="button" data-single-export-format="doc"><strong>Word</strong><small>.doc 相容檔</small></button>
+        <button type="button" data-single-export-format="pdf"><strong>PDF</strong><small>列印另存</small></button>
+        <button type="button" data-single-export-format="xlsx"><strong>Excel</strong><small>.xlsx 試算表</small></button>
+        <button type="button" data-single-export-format="txt"><strong>純文字</strong><small>.txt</small></button>
+        <button type="button" data-single-export-format="md"><strong>Markdown</strong><small>.md</small></button>
+        <button type="button" data-single-export-format="csv"><strong>CSV</strong><small>.csv 試算表</small></button>
+      </div>
+      <p class="single-export-warning" id="single-export-warning">匯出的檔案不會加密，下載後請自行妥善保存。</p>
+      <p class="single-export-status" id="single-export-status" role="status" aria-live="polite"></p>
+    </div>
+  </div>
   <script src="./javascript/auth-guard.js" defer></script>
-  <script src="./javascript/main.js?v=3.6.0" defer></script>
+  <script src="./javascript/notes-analytics.js?v=3.7.0" defer></script>
+  <script src="./javascript/single-export.js?v=3.7.1" defer></script>
+  <script src="./javascript/main.js?v=3.7.1" defer></script>
   <script src="./javascript/finance-core.js?v=3.6.0" defer></script>
-  <script src="./javascript/accounting.js?v=3.6.0" defer></script>
+  <script src="./javascript/accounting.js?v=3.7.1" defer></script>
 </body>
 </html>
