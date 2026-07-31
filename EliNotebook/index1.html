@@ -1,119 +1,110 @@
-<!DOCTYPE html>
-<html lang="zh-hent">
-
+<!doctype html>
+<html lang="zh-Hant">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="./style/style.css">
-    <title>ELi NoteBook</title>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="description" content="EliNotebook 2.0｜保存在目前瀏覽器的個人備忘錄工具。">
+  <meta name="referrer" content="no-referrer">
+  <meta name="theme-color" content="#37413a">
+  <title>EliNotebook 2.0｜個人備忘錄</title>
+  <link rel="stylesheet" href="./style/style.css?v=2.0.1">
 </head>
-
 <body>
-    <header>
-        <div class="logo">
+  <a class="skip-link" href="#main-content">跳至主要內容</a>
 
-            <ion-icon name="accessibility-outline"></ion-icon>
-            Eli Notebook
-        </div>
-        <div class="clock">
-            clork
-        </div>
-        <nav>
-            <div class="navigation">
-                <ul>
-                    <li class="list active">
-                        <a href="#">
-                            <span class="icon">
-                                <ion-icon name="home-outline"></ion-icon>
-                            </span>
-                            <span class="text">
-                                Home
-                            </span>
-                        </a>
-                    </li>
-                    <li class="list">
-                        <a href="#">
-                            <span class="icon">
-                                <ion-icon name="person-outline"></ion-icon>
-                            </span>
-                            <span class="text">
-                                Profile
-                            </span>
-                        </a>
-                    </li>
-                    <li class="list">
-                        <a href="#">
-                            <span class="icon">
-                                <ion-icon name="chatbubble-outline"></ion-icon>
-                            </span>
-                            <span class="text">
-                                Message
-                            </span>
-                        </a>
-                    </li>
-                    <li class="list">
-                        <a href="#">
-                            <span class="icon">
-                                <ion-icon name="camera-outline"></ion-icon>
-                            </span>
-                            <span class="text">
-                                Photos
-                            </span>
-                        </a>
-                    </li>
-                    <li class="list">
-                        <a href="#">
-                            <span class="icon">
-                                <ion-icon name="settings-outline"></ion-icon>
-                            </span>
-                            <span class="text">
-                                Setting
-                            </span>
-                        </a>
-                    </li>
-                    <div class="indicator"></div>
-                </ul>
-            </div>
-        </nav>
-    </header>
-    <div class="task">
-        <h1>備忘錄</h1>
-
-        <form action="" id="new-task-form">
-            <input type="text" id="new-task-input" placeholder="What do you have planned?" />
-            <input type="submit" id="new-task-submit" value="add task" />
-        </form>
-        <main>
-
-            <section class="task-list">
-                <h2>Tasks</h2>
-                <div id="tasks">
-
-                    <!-- <div class="task"> -->
-                    <!-- <div class="content"> -->
-                    <!-- <input type="text" class="text" value="My shiny task" readonly name="" /> -->
-                    <!-- </div> -->
-                    <!-- <div class="actions"> -->
-                    <!-- <button class="edit">Edit</button> -->
-                    <!-- <button class="delete">Delete</button> -->
-                    <!-- </div> -->
-                    <!-- </div> -->
-
-                </div>
-            </section>
-        </main>
+  <header class="topbar">
+    <a class="brand" href="../index.html" aria-label="返回葉秀庭個人網頁">
+      <span class="brand-mark" aria-hidden="true">E</span>
+      <span><strong>EliNotebook</strong><small>PERSONAL NOTES · 2.0</small></span>
+    </a>
+    <div class="topbar-actions">
+      <time id="clock" aria-label="目前時間">載入時間中</time>
+      <button class="icon-button" id="theme-toggle" type="button" aria-label="切換深色模式" title="切換深色模式">◐</button>
+      <a class="back-link" href="../index.html">返回個人網頁</a>
     </div>
+  </header>
+
+  <div class="app-shell">
+    <nav class="side-nav" aria-label="EliNotebook 功能選單">
+      <button class="nav-item active" type="button" data-view="home" aria-current="page"><span aria-hidden="true">⌂</span><b>首頁</b></button>
+      <button class="nav-item" type="button" data-view="notes"><span aria-hidden="true">✎</span><b>備忘錄</b></button>
+      <button class="nav-item" type="button" data-view="completed"><span aria-hidden="true">✓</span><b>已完成</b></button>
+      <button class="nav-item" type="button" data-view="backup"><span aria-hidden="true">⇩</span><b>備份</b></button>
+      <button class="nav-item" type="button" data-view="settings"><span aria-hidden="true">⚙</span><b>設定</b></button>
+    </nav>
+
+    <main id="main-content" class="workspace">
+      <section class="view active" id="view-home" data-view-panel="home">
+        <div class="welcome">
+          <p class="eyebrow">WELCOME BACK</p>
+          <h1>今天，有什麼需要記下來？</h1>
+          <p>快速記錄、分類整理，資料只保存在目前瀏覽器。</p>
+        </div>
+
+        <div class="summary-grid" aria-label="備忘錄統計">
+          <article><span>全部</span><strong id="total-count">0</strong><small>則備忘錄</small></article>
+          <article><span>待完成</span><strong id="pending-count">0</strong><small>則待處理</small></article>
+          <article><span>已完成</span><strong id="completed-count">0</strong><small>則已完成</small></article>
+        </div>
+
+        <form id="quick-add-form" class="composer">
+          <div class="composer-heading"><div><p class="eyebrow">QUICK NOTE</p><h2>新增備忘錄</h2></div><span id="character-count">0 / 500</span></div>
+          <label for="new-task-input">備忘錄內容</label>
+          <textarea id="new-task-input" maxlength="500" rows="4" placeholder="例如：星期五下午三點聯絡王先生" required></textarea>
+          <div class="composer-options">
+            <label>分類<select id="new-task-category"><option value="工作">工作</option><option value="客戶聯繫">客戶聯繫</option><option value="理賠">理賠</option><option value="保單整理">保單整理</option><option value="個人">個人</option><option value="其他">其他</option></select></label>
+            <label>優先程度<select id="new-task-priority"><option value="medium">中</option><option value="high">高</option><option value="low">低</option></select></label>
+            <button class="primary-button" type="submit">加入備忘錄</button>
+          </div>
+        </form>
+
+        <section class="recent-section" aria-labelledby="recent-title">
+          <div class="section-heading"><div><p class="eyebrow">RECENT NOTES</p><h2 id="recent-title">最近新增</h2></div><button class="text-button" type="button" data-go-view="notes">查看全部</button></div>
+          <div class="task-list" id="recent-tasks"></div>
+        </section>
+      </section>
+
+      <section class="view" id="view-notes" data-view-panel="notes">
+        <div class="page-heading"><p class="eyebrow">ALL NOTES</p><h1>全部備忘錄</h1><p>搜尋、分類與調整處理狀態。</p></div>
+        <div class="filters" role="search">
+          <label class="search-field"><span>搜尋內容</span><input id="search-input" type="search" placeholder="搜尋備忘錄……"></label>
+          <label><span>分類</span><select id="category-filter"><option value="all">全部分類</option></select></label>
+          <label><span>狀態</span><select id="status-filter"><option value="all">全部狀態</option><option value="pending">待完成</option><option value="completed">已完成</option></select></label>
+          <label><span>排序</span><select id="sort-filter"><option value="newest">最新建立</option><option value="oldest">最早建立</option><option value="updated">最近修改</option><option value="priority">優先程度</option></select></label>
+        </div>
+        <p class="result-count" id="result-count">共 0 則</p>
+        <div class="task-list" id="all-tasks"></div>
+      </section>
+
+      <section class="view" id="view-completed" data-view-panel="completed">
+        <div class="page-heading"><p class="eyebrow">COMPLETED</p><h1>已完成事項</h1><p>保留完成紀錄，也可以重新設為待完成。</p></div>
+        <div class="task-list" id="completed-tasks"></div>
+      </section>
+
+      <section class="view" id="view-backup" data-view-panel="backup">
+        <div class="page-heading"><p class="eyebrow">BACKUP</p><h1>備份與還原</h1><p>定期匯出備份，避免清除瀏覽器資料後遺失。</p></div>
+        <div class="utility-grid">
+          <article class="utility-card"><span aria-hidden="true">JSON</span><h2>完整資料備份</h2><p>保留內容、分類、優先程度、完成狀態及日期，日後可重新匯入。</p><button id="export-json" class="primary-button" type="button">匯出 JSON</button></article>
+          <article class="utility-card"><span aria-hidden="true">TXT</span><h2>閱讀用文字檔</h2><p>輸出方便閱讀的純文字清單，但無法用它完整還原資料欄位。</p><button id="export-text" class="secondary-button" type="button">匯出文字檔</button></article>
+          <article class="utility-card"><span aria-hidden="true">↑</span><h2>匯入完整備份</h2><p>選擇由 EliNotebook 匯出的 JSON；匯入前會詢問要合併或取代。</p><label class="file-button" for="import-json">選擇 JSON 檔</label><input id="import-json" type="file" accept="application/json,.json"></article>
+        </div>
+      </section>
+
+      <section class="view" id="view-settings" data-view-panel="settings">
+        <div class="page-heading"><p class="eyebrow">SETTINGS</p><h1>設定與資料說明</h1><p>了解資料保存位置，以及可執行的本機設定。</p></div>
+        <div class="settings-list">
+          <article><div><h2>外觀模式</h2><p>切換淺色或深色模式，選擇會保存在目前瀏覽器。</p></div><button id="settings-theme-toggle" class="secondary-button" type="button">切換外觀</button></article>
+          <article><div><h2>本機儲存狀態</h2><p id="storage-status">正在檢查……</p></div><span class="status-badge">localStorage</span></article>
+          <article class="danger-zone"><div><h2>清除全部備忘錄</h2><p>這個動作無法復原，建議先到「備份」匯出 JSON。</p></div><button id="clear-all" class="danger-button" type="button">清除全部</button></article>
+        </div>
+        <aside class="privacy-notice"><strong>重要隱私提醒</strong><p>目前版本沒有帳號、雲端同步或資料加密。請勿記錄客戶姓名、身分證字號、病歷、保單號碼、聯絡方式或理賠文件等個人及敏感資料。</p></aside>
+      </section>
+    </main>
+  </div>
+
+  <div class="toast" id="undo-toast" role="status" aria-live="polite" hidden><span>備忘錄已刪除</span><button id="undo-delete" type="button">復原</button></div>
+  <div class="screen-reader-status" id="live-status" aria-live="polite"></div>
+  <script src="./javascript/main.js?v=2.0.1" defer></script>
 </body>
-
-
-
-
-
-
-
-
-<script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"> </script>
-<script script nomodule src="https://unpkg .com/ionicons@5.5.2/dist/ionicons/ionicons.js"> </script>
-<script src="./javascript/main.js"></script>
-
 </html>

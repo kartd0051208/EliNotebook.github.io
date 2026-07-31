@@ -1,285 +1,545 @@
+"use strict";
 
+// EliNotebook 2.0
+// 資料只會儲存在目前瀏覽器的 localStorage，不會上傳至伺服器。
+// v2 採用物件格式，並會自動把舊版 v1 的純文字陣列轉換成新版資料。
 
-// ==================== 導覽列功能 ====================
-// 找出導覽列中所有帶有 .list 類別的選項，之後才能逐一處理點擊效果。
-const list = document.querySelectorAll('.list');
+window.addEventListener("DOMContentLoaded", () => {
+  const STORAGE_KEY = "eliNotebook.tasks.v2";
+  const LEGACY_STORAGE_KEY = "eliNotebook.tasks.v1";
+  const THEME_KEY = "eliNotebook.theme.v1";
+  const DEFAULT_CATEGORIES = ["工作", "客戶聯繫", "理賠", "保單整理", "個人", "其他"];
+  const PRIORITY_LABELS = { high: "高優先", medium: "中優先", low: "低優先" };
+  const PRIORITY_ORDER = { high: 0, medium: 1, low: 2 };
 
-// 當使用者點擊某個導覽選項時，先移除全部選項的 active 狀態，
-// 再把 active 加到目前被點擊的選項，確保畫面一次只會標示一個所在位置。
-function activeLink() {
-    list.forEach((item) =>
-        item.classList.remove('active'));
-    this.classList.add('active');
-}
+  const elements = {
+    navItems: [...document.querySelectorAll(".nav-item")],
+    views: [...document.querySelectorAll("[data-view-panel]")],
+    goViewButtons: [...document.querySelectorAll("[data-go-view]")],
+    quickAddForm: document.querySelector("#quick-add-form"),
+    input: document.querySelector("#new-task-input"),
+    category: document.querySelector("#new-task-category"),
+    priority: document.querySelector("#new-task-priority"),
+    characterCount: document.querySelector("#character-count"),
+    recentTasks: document.querySelector("#recent-tasks"),
+    allTasks: document.querySelector("#all-tasks"),
+    completedTasks: document.querySelector("#completed-tasks"),
+    search: document.querySelector("#search-input"),
+    categoryFilter: document.querySelector("#category-filter"),
+    statusFilter: document.querySelector("#status-filter"),
+    sortFilter: document.querySelector("#sort-filter"),
+    resultCount: document.querySelector("#result-count"),
+    totalCount: document.querySelector("#total-count"),
+    pendingCount: document.querySelector("#pending-count"),
+    completedCount: document.querySelector("#completed-count"),
+    exportJson: document.querySelector("#export-json"),
+    exportText: document.querySelector("#export-text"),
+    importJson: document.querySelector("#import-json"),
+    themeToggle: document.querySelector("#theme-toggle"),
+    settingsThemeToggle: document.querySelector("#settings-theme-toggle"),
+    clearAll: document.querySelector("#clear-all"),
+    storageStatus: document.querySelector("#storage-status"),
+    clock: document.querySelector("#clock"),
+    toast: document.querySelector("#undo-toast"),
+    undoDelete: document.querySelector("#undo-delete"),
+    liveStatus: document.querySelector("#live-status")
+  };
 
-// 將上面的 activeLink 點擊處理函式綁定到每一個導覽選項。
-// 如果沒有這段，點擊導覽選項時就不會切換 active 的視覺效果。
-list.forEach((item) =>
-    item.addEventListener('click', activeLink));
+  let tasks = loadTasks();
+  let deletedSnapshot = null;
+  let undoTimer = null;
 
+  function createId() {
+    if (window.crypto && typeof window.crypto.randomUUID === "function") {
+      return window.crypto.randomUUID();
+    }
+    return `task-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  }
 
+  function nowIso() {
+    return new Date().toISOString();
+  }
 
-
-// ==================== 備忘錄留存功能 ====================
-//
-// ==================== 新版新增功能、特性與使用範例 ====================
-//
-// 1.【功能】localStorage 本機留存
-//   【特性】資料保存在目前裝置與瀏覽器的網站儲存空間，重新整理或關閉後再開仍可讀取。
-//   【範例】今天新增「星期五聯絡王先生」，關閉 Chrome 後，明天用同一個 Chrome 開啟仍會看到。
-//   【限制】換手機、換瀏覽器、使用無痕模式或清除網站資料時，備忘錄不會自動同步或保留。
-//
-// 2.【功能】有版本的儲存名稱
-//   【特性】使用 eliNotebook.tasks.v1 當作固定儲存鍵，並用 v1 標記第一版資料格式。
-//   【範例】未來若改成同時儲存日期與完成狀態，可使用 v2，避免新格式誤讀舊格式。
-//
-// 3.【功能】必要元件防呆
-//   【特性】表單、輸入框或清單不存在時安全停止，不讓單一功能錯誤影響整個網站。
-//   【範例】日後修改 index1.html 時不小心移除 #tasks，程式會停止備忘錄功能，而不是連導覽列都報錯。
-//
-// 4.【功能】輸入長度與空白檢查
-//   【特性】每則最多 300 字，並使用 trim() 移除前後空白，不接受只有空格的內容。
-//   【範例】輸入「   申請理賠文件   」會存成「申請理賠文件」；只輸入空格則不會新增。
-//
-// 5.【功能】JSON 資料轉換
-//   【特性】利用 JSON.stringify() 將陣列轉成文字儲存，再用 JSON.parse() 還原成陣列。
-//   【範例】["聯絡客戶", "整理保單"] 會先轉成 JSON 字串保存，下次開啟再還原為兩則備忘錄。
-//
-// 6.【功能】資料格式驗證與錯誤復原
-//   【特性】只接受「文字陣列」；資料損壞時改用空陣列，讓網頁仍能正常開啟。
-//   【範例】如果儲存內容意外變成無效 JSON，程式會在主控台記錄錯誤，不會讓整個頁面變成空白。
-//
-// 7.【功能】統一畫面重新產生
-//   【特性】renderTasks() 以 tasks 陣列為唯一資料來源，新增、編輯、刪除後都重建清單。
-//   【範例】刪除第 2 則後，畫面會依剩餘陣列重新排列，不會留下重複項目或錯誤位置。
-//
-// 8.【功能】較安全的 DOM 建立方式
-//   【特性】使用 createElement()、value 與 textContent 建立內容，不把使用者文字當成 HTML 執行。
-//   【範例】備忘錄輸入「<b>重要</b>」時，只會顯示這段文字，不會被解析成粗體 HTML 標籤。
-//
-// 9.【功能】唯讀與編輯模式切換
-//   【特性】備忘錄平時保持唯讀，按 Edit 才可修改，按 Save 後重新鎖定，降低誤觸修改。
-//   【範例】第一次按 Edit 會選取整段文字；修改完成按 Save 後，內容立即鎖定並保存。
-//
-// 10.【功能】編輯後同步留存
-//   【特性】修改內容時同時更新 tasks 陣列、localStorage 與畫面，而不是只改目前看到的文字。
-//   【範例】把「聯絡客戶」改成「下午三點聯絡客戶」，重新整理後仍會顯示修改後內容。
-//
-// 11.【功能】Enter 快速儲存
-//   【特性】編輯狀態下按 Enter 等同點擊 Save，減少滑鼠操作。
-//   【範例】修改完成後直接按 Enter，即可保存並退出編輯狀態。
-//
-// 12.【功能】刪除後同步留存
-//   【特性】Delete 不只移除畫面項目，也會從陣列與 localStorage 永久移除。
-//   【範例】刪除「已完成的回電」後重新整理，該項目不會重新出現。
-//
-// 13.【功能】儲存成功確認
-//   【特性】saveTasks() 會回傳成功或失敗；只有成功時才清空輸入框及更新畫面。
-//   【範例】若瀏覽器封鎖網站資料，系統會保留輸入文字並顯示警告，而不是假裝已經保存。
-//
-// 14.【功能】無障礙標示
-//   【特性】使用 aria-label 說明輸入框用途，讓螢幕閱讀器能辨認「備忘錄內容」。
-//   【範例】視覺輔助工具聚焦輸入框時，會朗讀這是備忘錄內容，而不是只有「文字輸入框」。
-//
-// 15.【功能】首次載入自動還原
-//   【特性】頁面開啟後先讀取 localStorage，再執行 renderTasks()，不需要手動按「載入」。
-//   【範例】開啟 index1.html 後，昨天保存的清單會直接顯示在 Tasks 區域。
-// ======================================================================
-//
-// 等待整個網頁載入完成後再執行，確保表單、輸入框和清單都已經存在於頁面中。
-window.addEventListener("load", () => {
-    // 【特性：固定且可版本化】localStorage 使用「名稱和值」保存資料；這個固定名稱就是備忘錄的儲存位置。
-    // 後面的 v1 是資料格式版本，未來若改變資料結構，可以改成 v2，避免新舊格式互相衝突。
-    // 【範例】現在從 eliNotebook.tasks.v1 讀寫；未來資料結構改版時可以另外使用 eliNotebook.tasks.v2。
-    const STORAGE_KEY = "eliNotebook.tasks.v1";
-
-    // 從 HTML 取得新增備忘錄所需的三個元件：表單、文字輸入框、備忘錄顯示區域。
-    const form = document.querySelector("#new-task-form");
-    const input = document.querySelector("#new-task-input");
-    const listElement = document.querySelector("#tasks");
-
-    // 【特性：安全停止】如果 HTML 中任何一個必要元件不存在，就立刻停止備忘錄程式。
-    // 這是防呆機制，可避免 JavaScript 因為找不到元件而報錯，進一步影響其他網頁功能。
-    // 【範例】#new-task-form 被移除時會在這裡停止，不會繼續呼叫 form.addEventListener() 而發生錯誤。
-    if (!form || !input || !listElement) return;
-
-    // 【特性：限制長度】每一則備忘錄最多輸入 300 個字，避免意外貼入過長內容而影響版面與容量。
-    // 【範例】輸入到第 300 個字後，瀏覽器會停止接受更多文字。
-    input.maxLength = 300;
-
-    // 網頁開啟時，先從瀏覽器讀取上次儲存的備忘錄，放進 tasks 陣列中供後續操作。
-    let tasks = loadTasks();
-
-    // 【特性：自動還原】從 localStorage 讀取並還原備忘錄。
-    // 【範例】上次保存兩則內容，loadTasks() 就會回傳包含兩個字串的陣列。
-    function loadTasks() {
-        try {
-            // localStorage 只能保存文字，因此先用 getItem 取得 JSON 字串，
-            // 再用 JSON.parse 還原成 JavaScript 陣列；沒有舊資料時使用空陣列 []。
-            const savedTasks = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-
-            // 確認讀出的資料真的是陣列，並只保留文字項目。
-            // 這可避免資料毀損或格式錯誤時，整個備忘錄功能無法運作。
-            return Array.isArray(savedTasks)
-                ? savedTasks.filter((task) => typeof task === "string")
-                : [];
-        } catch (error) {
-            // 若 JSON 資料損壞或瀏覽器拒絕讀取，記錄錯誤並回傳空陣列，讓頁面仍能正常開啟。
-            console.error("無法讀取備忘錄：", error);
-            return [];
-        }
+  // 把外部匯入或舊版資料整理成系統可接受的格式，避免錯誤欄位破壞畫面。
+  function normalizeTask(value) {
+    if (typeof value === "string") {
+      const content = value.trim().slice(0, 500);
+      if (!content) return null;
+      const timestamp = nowIso();
+      return { id: createId(), content, category: "其他", priority: "medium", completed: false, createdAt: timestamp, updatedAt: timestamp };
     }
 
-    // 【特性：整批同步】把目前 tasks 陣列中的全部備忘錄寫入 localStorage。
-    // 【範例】tasks 有三則內容時，三則會一起轉成 JSON 字串寫入同一個儲存鍵。
-    function saveTasks() {
-        try {
-            // localStorage 只能存文字，因此先用 JSON.stringify 把陣列轉成 JSON 字串再儲存。
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+    if (!value || typeof value !== "object") return null;
+    const content = typeof value.content === "string" ? value.content.trim().slice(0, 500) : "";
+    if (!content) return null;
+    const createdAt = Number.isNaN(Date.parse(value.createdAt)) ? nowIso() : value.createdAt;
+    const updatedAt = Number.isNaN(Date.parse(value.updatedAt)) ? createdAt : value.updatedAt;
+    return {
+      id: typeof value.id === "string" && value.id ? value.id : createId(),
+      content,
+      category: typeof value.category === "string" && value.category.trim() ? value.category.trim().slice(0, 30) : "其他",
+      priority: ["high", "medium", "low"].includes(value.priority) ? value.priority : "medium",
+      completed: value.completed === true,
+      createdAt,
+      updatedAt
+    };
+  }
 
-            // 回傳 true，讓新增備忘錄的程式知道儲存成功，可以清空輸入框並更新畫面。
-            return true;
-        } catch (error) {
-            // 無痕模式、網站資料遭封鎖或瀏覽器空間不足時可能儲存失敗，
-            // 因此同時在開發者工具留下錯誤，並用訊息提醒使用者。
-            console.error("無法儲存備忘錄：", error);
-            alert("備忘錄無法儲存，請確認瀏覽器沒有封鎖網站資料或使用無痕模式。");
-            return false;
-        }
+  function loadTasks() {
+    try {
+      const current = localStorage.getItem(STORAGE_KEY);
+      if (current !== null) {
+        const parsed = JSON.parse(current);
+        return Array.isArray(parsed) ? parsed.map(normalizeTask).filter(Boolean) : [];
+      }
+
+      // 第一次開啟 2.0 時，自動讀取舊版 v1，轉換後仍保留原本的備忘錄。
+      const legacy = JSON.parse(localStorage.getItem(LEGACY_STORAGE_KEY) || "[]");
+      const migrated = Array.isArray(legacy) ? legacy.map(normalizeTask).filter(Boolean) : [];
+      if (migrated.length) localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
+      return migrated;
+    } catch (error) {
+      console.error("無法讀取備忘錄：", error);
+      return [];
     }
+  }
 
-    // 【特性：資料驅動畫面】根據 tasks 陣列重新產生畫面上的全部備忘錄。
-    // 新增、編輯或刪除後都呼叫同一個函式，可讓畫面和實際儲存資料保持一致。
-    // 【範例】tasks 從三則刪成兩則後，renderTasks() 會把畫面重新建立成兩則。
-    function renderTasks() {
-        // 先清空舊畫面再重建，避免每次更新時重複顯示相同備忘錄。
-        listElement.replaceChildren();
-
-        // 逐一處理每一則備忘錄；index 是該項目在陣列中的位置，編輯和刪除時會使用。
-        tasks.forEach((task, index) => {
-            // 建立每一則備忘錄最外層的容器，並套用原本 CSS 使用的 task 類別。
-            const taskElement = document.createElement("div");
-            taskElement.classList.add("task");
-
-            // 建立放置備忘錄文字輸入框的內容區塊。
-            const taskContentElement = document.createElement("div");
-            taskContentElement.classList.add("content");
-
-            // 建立備忘錄文字輸入框，並把陣列中的文字顯示出來。
-            const taskInputElement = document.createElement("input");
-            taskInputElement.classList.add("text");
-            taskInputElement.type = "text";
-            taskInputElement.value = task;
-            taskInputElement.maxLength = 300;
-
-            // 【特性：防止誤改】預設設為唯讀，避免使用者誤觸時直接改到內容；必須先按 Edit 才能編輯。
-            // 【範例】直接點備忘錄文字不會修改；先按 Edit 才會解除唯讀。
-            taskInputElement.readOnly = true;
-
-            // 【特性：無障礙辨識】提供螢幕閱讀器可辨識的名稱，改善鍵盤操作與無障礙閱讀體驗。
-            // 【範例】輔助工具聚焦時會讀出「備忘錄內容」。
-            taskInputElement.setAttribute("aria-label", "備忘錄內容");
-
-            // 建立放置 Edit 與 Delete 按鈕的操作區塊。
-            const taskActionsElement = document.createElement("div");
-            taskActionsElement.classList.add("actions");
-
-            // 建立編輯按鈕。明確指定 type="button"，避免它被瀏覽器當成送出表單的按鈕。
-            const editButton = document.createElement("button");
-            editButton.classList.add("edit");
-            editButton.type = "button";
-
-            // 【特性：純文字輸出】使用 textContent 放入按鈕文字，不使用 innerHTML，避免內容被當成 HTML 解析。
-            // 【範例】即使文字中出現 <script>，也只會被當成普通文字，而不會執行程式碼。
-            editButton.textContent = "Edit";
-
-            // 建立刪除按鈕，同樣指定為一般按鈕，避免誤觸發表單送出。
-            const deleteButton = document.createElement("button");
-            deleteButton.classList.add("delete");
-            deleteButton.type = "button";
-            deleteButton.textContent = "Delete";
-
-            // 按照 HTML 結構依序組合文字區、操作按鈕與整則備忘錄，最後放進備忘錄清單。
-            taskContentElement.appendChild(taskInputElement);
-            taskActionsElement.append(editButton, deleteButton);
-            taskElement.append(taskContentElement, taskActionsElement);
-            listElement.appendChild(taskElement);
-
-            // 處理 Edit／Save 按鈕：同一顆按鈕依目前狀態切換「開始編輯」或「儲存修改」。
-            editButton.addEventListener("click", () => {
-                // 唯讀狀態下按 Edit：解除唯讀、將游標移到輸入框並選取文字，方便立即修改。
-                if (taskInputElement.readOnly) {
-                    taskInputElement.readOnly = false;
-                    taskInputElement.focus();
-                    taskInputElement.select();
-                    editButton.textContent = "Save";
-                    return;
-                }
-
-                // 編輯狀態下按 Save：去除文字前後多餘空白，取得真正需要儲存的內容。
-                const updatedTask = taskInputElement.value.trim();
-
-                // 不允許把備忘錄存成空白，避免清單中出現看不到內容的項目。
-                if (!updatedTask) {
-                    alert("備忘錄內容不能是空白。");
-                    taskInputElement.focus();
-                    return;
-                }
-
-                // 更新陣列中相同位置的內容，寫入 localStorage，再重新產生畫面。
-                // 原版只改畫面文字，沒有這三步，所以重新開啟網頁後修改內容會消失。
-                tasks[index] = updatedTask;
-                saveTasks();
-                renderTasks();
-            });
-
-            // 【特性：鍵盤快速操作】使用者編輯時按 Enter，等同於點擊 Save，讓操作更方便。
-            // 【範例】修改完「整理保單」後按 Enter，就會觸發 editButton.click() 完成儲存。
-            taskInputElement.addEventListener("keydown", (event) => {
-                if (event.key === "Enter" && !taskInputElement.readOnly) {
-                    editButton.click();
-                }
-            });
-
-            // 【特性：永久同步刪除】點擊 Delete 時，使用 splice 從陣列刪除對應位置的備忘錄，
-            // 接著同步更新 localStorage 和畫面，確保下次開啟時被刪除的內容不會再出現。
-            // 【範例】刪除第 1 則後，該項目會從陣列、瀏覽器儲存及畫面三個地方一起消失。
-            deleteButton.addEventListener("click", () => {
-                tasks.splice(index, 1);
-                saveTasks();
-                renderTasks();
-            });
-        });
+  function saveTasks() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+      updateStorageStatus();
+      return true;
+    } catch (error) {
+      console.error("無法儲存備忘錄：", error);
+      alert("備忘錄無法儲存。請確認瀏覽器沒有封鎖網站資料，並避免使用無痕模式。");
+      return false;
     }
+  }
 
-    // 監聽新增備忘錄表單的送出事件。
-    form.addEventListener("submit", (event) => {
-        // 阻止表單的預設重新整理行為；若重新整理發生在儲存之前，剛輸入的內容就可能消失。
-        event.preventDefault();
+  function announce(message) {
+    elements.liveStatus.textContent = "";
+    window.setTimeout(() => { elements.liveStatus.textContent = message; }, 30);
+  }
 
-        // 【特性：內容正規化】取得使用者輸入內容，並移除文字前後的多餘空白。
-        // 【範例】輸入「  回覆客戶  」時，實際保存為「回覆客戶」。
-        const newTask = input.value.trim();
+  function formatDate(value) {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "日期不明";
+    return new Intl.DateTimeFormat("zh-TW", {
+      year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false
+    }).format(date);
+  }
 
-        // 不接受空白備忘錄，並把輸入焦點移回輸入框方便使用者重新輸入。
-        if (!newTask) {
-            alert("請先輸入備忘錄內容。");
-            input.focus();
-            return;
-        }
+  function createMeta(text, className = "") {
+    const span = document.createElement("span");
+    span.textContent = text;
+    if (className) span.className = className;
+    return span;
+  }
 
-        // 先把新內容加入 tasks 陣列，再嘗試寫入 localStorage。
-        tasks.push(newTask);
+  function emptyState(title, description) {
+    const box = document.createElement("div");
+    box.className = "empty-state";
+    const strong = document.createElement("strong");
+    const text = document.createElement("span");
+    strong.textContent = title;
+    text.textContent = description;
+    box.append(strong, text);
+    return box;
+  }
 
-        // 【特性：確認成功再更新】只有成功儲存後才清空輸入框並重畫清單，避免誤以為已保存。
-        // 【範例】localStorage 寫入失敗時，輸入框不會被清空，使用者可以複製內容或再次嘗試。
-        if (saveTasks()) {
-            input.value = "";
-            renderTasks();
-        }
+  function createTaskCard(task) {
+    const card = document.createElement("article");
+    card.className = `task-card${task.completed ? " completed" : ""}`;
+    card.dataset.taskId = task.id;
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.className = "task-check";
+    checkbox.checked = task.completed;
+    checkbox.setAttribute("aria-label", task.completed ? "設為待完成" : "標示為已完成");
+
+    const content = document.createElement("div");
+    content.className = "task-content";
+    const paragraph = document.createElement("p");
+    paragraph.textContent = task.content;
+    const meta = document.createElement("div");
+    meta.className = "task-meta";
+    meta.append(
+      createMeta(task.category),
+      createMeta(PRIORITY_LABELS[task.priority], `priority-${task.priority}`),
+      createMeta(`建立 ${formatDate(task.createdAt)}`)
+    );
+    if (task.updatedAt !== task.createdAt) meta.append(createMeta(`修改 ${formatDate(task.updatedAt)}`));
+    content.append(paragraph, meta);
+
+    const actions = document.createElement("div");
+    actions.className = "task-actions";
+    const edit = document.createElement("button");
+    edit.type = "button";
+    edit.textContent = "編輯";
+    edit.setAttribute("aria-label", `編輯：${task.content}`);
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "delete";
+    remove.textContent = "刪除";
+    remove.setAttribute("aria-label", `刪除：${task.content}`);
+    actions.append(edit, remove);
+    card.append(checkbox, content, actions);
+
+    checkbox.addEventListener("change", () => toggleCompleted(task.id, checkbox.checked));
+    remove.addEventListener("click", () => deleteTask(task.id));
+    edit.addEventListener("click", () => openEditor(card, task));
+    return card;
+  }
+
+  function openEditor(card, task) {
+    if (card.querySelector(".edit-panel")) return;
+    const panel = document.createElement("div");
+    panel.className = "edit-panel";
+    const textarea = document.createElement("textarea");
+    textarea.maxLength = 500;
+    textarea.value = task.content;
+    textarea.setAttribute("aria-label", "編輯備忘錄內容");
+
+    const options = document.createElement("div");
+    options.className = "edit-options";
+    const category = document.createElement("select");
+    category.setAttribute("aria-label", "編輯分類");
+    getCategories().forEach((name) => category.add(new Option(name, name, false, name === task.category)));
+    const priority = document.createElement("select");
+    priority.setAttribute("aria-label", "編輯優先程度");
+    [["high", "高"], ["medium", "中"], ["low", "低"]].forEach(([value, label]) => priority.add(new Option(label, value, false, value === task.priority)));
+    const save = document.createElement("button");
+    save.type = "button";
+    save.className = "primary-button";
+    save.textContent = "儲存修改";
+    const cancel = document.createElement("button");
+    cancel.type = "button";
+    cancel.className = "secondary-button";
+    cancel.textContent = "取消";
+    options.append(category, priority, save, cancel);
+    panel.append(textarea, options);
+    card.append(panel);
+    textarea.focus();
+
+    cancel.addEventListener("click", () => panel.remove());
+    save.addEventListener("click", () => {
+      const newContent = textarea.value.trim();
+      if (!newContent) {
+        alert("備忘錄內容不能是空白。");
+        textarea.focus();
+        return;
+      }
+      const index = tasks.findIndex((item) => item.id === task.id);
+      if (index < 0) return;
+      const previous = { ...tasks[index] };
+      tasks[index] = { ...tasks[index], content: newContent, category: category.value, priority: priority.value, updatedAt: nowIso() };
+      if (!saveTasks()) {
+        tasks[index] = previous;
+        return;
+      }
+      renderAll();
+      announce("備忘錄修改完成");
+    });
+  }
+
+  function toggleCompleted(id, completed) {
+    const index = tasks.findIndex((task) => task.id === id);
+    if (index < 0) return;
+    const previous = { ...tasks[index] };
+    tasks[index] = { ...tasks[index], completed, updatedAt: nowIso() };
+    if (!saveTasks()) {
+      tasks[index] = previous;
+      renderAll();
+      return;
+    }
+    renderAll();
+    announce(completed ? "已標示為完成" : "已重新設為待完成");
+  }
+
+  function deleteTask(id) {
+    const index = tasks.findIndex((task) => task.id === id);
+    if (index < 0) return;
+    const removed = tasks[index];
+    tasks.splice(index, 1);
+    if (!saveTasks()) {
+      tasks.splice(index, 0, removed);
+      return;
+    }
+    deletedSnapshot = { task: removed, index };
+    showUndoToast();
+    renderAll();
+    announce("備忘錄已刪除，可按復原還原");
+  }
+
+  function showUndoToast() {
+    window.clearTimeout(undoTimer);
+    elements.toast.hidden = false;
+    undoTimer = window.setTimeout(() => {
+      elements.toast.hidden = true;
+      deletedSnapshot = null;
+    }, 7000);
+  }
+
+  function undoDelete() {
+    if (!deletedSnapshot) return;
+    const { task, index } = deletedSnapshot;
+    tasks.splice(Math.min(index, tasks.length), 0, task);
+    if (!saveTasks()) {
+      tasks = tasks.filter((item) => item.id !== task.id);
+      return;
+    }
+    deletedSnapshot = null;
+    elements.toast.hidden = true;
+    window.clearTimeout(undoTimer);
+    renderAll();
+    announce("已復原刪除的備忘錄");
+  }
+
+  function getCategories() {
+    return [...new Set([...DEFAULT_CATEGORIES, ...tasks.map((task) => task.category)])];
+  }
+
+  function updateCategoryFilter() {
+    const previous = elements.categoryFilter.value || "all";
+    elements.categoryFilter.replaceChildren(new Option("全部分類", "all"));
+    getCategories().forEach((name) => elements.categoryFilter.add(new Option(name, name)));
+    elements.categoryFilter.value = [...elements.categoryFilter.options].some((option) => option.value === previous) ? previous : "all";
+  }
+
+  function filteredTasks() {
+    const query = elements.search.value.trim().toLocaleLowerCase("zh-TW");
+    const category = elements.categoryFilter.value;
+    const status = elements.statusFilter.value;
+    const sorted = tasks.filter((task) => {
+      const matchesQuery = !query || `${task.content} ${task.category}`.toLocaleLowerCase("zh-TW").includes(query);
+      const matchesCategory = category === "all" || task.category === category;
+      const matchesStatus = status === "all" || (status === "completed" ? task.completed : !task.completed);
+      return matchesQuery && matchesCategory && matchesStatus;
     });
 
-    // 【特性：開啟即顯示】網頁第一次開啟時立即執行，將 loadTasks 讀到的舊備忘錄顯示回畫面上。
-    // 【範例】昨天保存的內容會直接出現在清單中，不需要另外點擊載入按鈕。
-    renderTasks();
+    const mode = elements.sortFilter.value;
+    sorted.sort((a, b) => {
+      if (mode === "oldest") return Date.parse(a.createdAt) - Date.parse(b.createdAt);
+      if (mode === "updated") return Date.parse(b.updatedAt) - Date.parse(a.updatedAt);
+      if (mode === "priority") return PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority] || Date.parse(b.createdAt) - Date.parse(a.createdAt);
+      return Date.parse(b.createdAt) - Date.parse(a.createdAt);
+    });
+    return sorted;
+  }
+
+  function renderList(container, list, emptyTitle, emptyDescription) {
+    container.replaceChildren();
+    if (!list.length) {
+      container.append(emptyState(emptyTitle, emptyDescription));
+      return;
+    }
+    list.forEach((task) => container.append(createTaskCard(task)));
+  }
+
+  function renderAll() {
+    updateCategoryFilter();
+    elements.totalCount.textContent = String(tasks.length);
+    elements.pendingCount.textContent = String(tasks.filter((task) => !task.completed).length);
+    elements.completedCount.textContent = String(tasks.filter((task) => task.completed).length);
+
+    const recent = [...tasks].sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt)).slice(0, 3);
+    renderList(elements.recentTasks, recent, "目前沒有備忘錄", "從上方輸入第一則內容開始使用。" );
+
+    const visibleTasks = filteredTasks();
+    elements.resultCount.textContent = `共 ${visibleTasks.length} 則`;
+    renderList(elements.allTasks, visibleTasks, "找不到符合條件的內容", "請調整搜尋文字或篩選條件。" );
+
+    const completed = tasks.filter((task) => task.completed).sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt));
+    renderList(elements.completedTasks, completed, "還沒有已完成事項", "完成備忘錄後，紀錄會出現在這裡。" );
+    updateStorageStatus();
+  }
+
+  function changeView(name) {
+    elements.views.forEach((view) => view.classList.toggle("active", view.dataset.viewPanel === name));
+    elements.navItems.forEach((button) => {
+      const active = button.dataset.view === name;
+      button.classList.toggle("active", active);
+      if (active) button.setAttribute("aria-current", "page");
+      else button.removeAttribute("aria-current");
+    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function addTask(event) {
+    event.preventDefault();
+    const content = elements.input.value.trim();
+    if (!content) {
+      alert("請先輸入備忘錄內容。");
+      elements.input.focus();
+      return;
+    }
+    const timestamp = nowIso();
+    const task = {
+      id: createId(), content, category: elements.category.value,
+      priority: elements.priority.value, completed: false, createdAt: timestamp, updatedAt: timestamp
+    };
+    tasks.unshift(task);
+    if (!saveTasks()) {
+      tasks.shift();
+      return;
+    }
+    elements.quickAddForm.reset();
+    elements.characterCount.textContent = "0 / 500";
+    renderAll();
+    announce("備忘錄新增完成");
+  }
+
+  function downloadFile(filename, content, type) {
+    const blob = new Blob([content], { type });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    document.body.append(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  function fileDate() {
+    return new Date().toISOString().slice(0, 10);
+  }
+
+  function exportJson() {
+    const backup = { app: "EliNotebook", version: 2, exportedAt: nowIso(), tasks };
+    downloadFile(`EliNotebook-backup-${fileDate()}.json`, JSON.stringify(backup, null, 2), "application/json;charset=utf-8");
+    announce("完整 JSON 備份已下載");
+  }
+
+  function exportText() {
+    const lines = tasks.map((task, index) => [
+      `${index + 1}. [${task.completed ? "已完成" : "待完成"}] ${task.content}`,
+      `   分類：${task.category}｜優先：${PRIORITY_LABELS[task.priority]}｜建立：${formatDate(task.createdAt)}`
+    ].join("\n"));
+    const content = `EliNotebook 備忘錄\n匯出時間：${formatDate(nowIso())}\n總計：${tasks.length} 則\n\n${lines.join("\n\n")}`;
+    downloadFile(`EliNotebook-${fileDate()}.txt`, content, "text/plain;charset=utf-8");
+    announce("閱讀用文字檔已下載");
+  }
+
+  function importJson(event) {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      alert("檔案超過 5MB，請確認選擇的是 EliNotebook JSON 備份。");
+      event.target.value = "";
+      return;
+    }
+    const reader = new FileReader();
+    reader.addEventListener("load", () => {
+      try {
+        const parsed = JSON.parse(String(reader.result));
+        const source = Array.isArray(parsed) ? parsed : parsed.tasks;
+        if (!Array.isArray(source)) throw new Error("備份內沒有 tasks 陣列");
+        const imported = source.map(normalizeTask).filter(Boolean);
+        if (!imported.length && source.length) throw new Error("沒有可使用的備忘錄資料");
+        const shouldReplace = window.confirm(`讀取到 ${imported.length} 則備忘錄。\n\n按「確定」取代目前資料；按「取消」則合併資料。`);
+        const previous = [...tasks];
+        if (shouldReplace) tasks = imported;
+        else {
+          const ids = new Set(tasks.map((task) => task.id));
+          tasks = [...tasks, ...imported.filter((task) => !ids.has(task.id))];
+        }
+        if (!saveTasks()) {
+          tasks = previous;
+          return;
+        }
+        renderAll();
+        announce("備份匯入完成");
+      } catch (error) {
+        console.error("匯入失敗：", error);
+        alert("無法匯入。請確認這是 EliNotebook 匯出的 JSON 備份檔。");
+      } finally {
+        event.target.value = "";
+      }
+    });
+    reader.readAsText(file, "utf-8");
+  }
+
+  function preferredTheme() {
+    try {
+      const saved = localStorage.getItem(THEME_KEY);
+      if (saved === "light" || saved === "dark") return saved;
+    } catch (error) {
+      console.warn("無法讀取外觀設定：", error);
+    }
+    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  }
+
+  function applyTheme(theme) {
+    document.documentElement.dataset.theme = theme;
+    try {
+      localStorage.setItem(THEME_KEY, theme);
+    } catch (error) {
+      console.warn("無法保存外觀設定：", error);
+    }
+    const dark = theme === "dark";
+    elements.themeToggle.setAttribute("aria-label", dark ? "切換淺色模式" : "切換深色模式");
+    document.querySelector('meta[name="theme-color"]').content = dark ? "#1d211e" : "#37413a";
+  }
+
+  function toggleTheme() {
+    applyTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark");
+  }
+
+  function updateStorageStatus() {
+    const bytes = new Blob([localStorage.getItem(STORAGE_KEY) || ""]).size;
+    const size = bytes < 1024 ? `${bytes} bytes` : `${(bytes / 1024).toFixed(1)} KB`;
+    elements.storageStatus.textContent = `目前保存 ${tasks.length} 則備忘錄，約使用 ${size}。資料僅存在這個瀏覽器。`;
+  }
+
+  function updateClock() {
+    elements.clock.textContent = new Intl.DateTimeFormat("zh-TW", {
+      month: "2-digit", day: "2-digit", weekday: "short", hour: "2-digit", minute: "2-digit", hour12: false
+    }).format(new Date());
+  }
+
+  function clearAllTasks() {
+    if (!tasks.length) {
+      alert("目前沒有可清除的備忘錄。");
+      return;
+    }
+    const confirmed = window.confirm("確定清除全部備忘錄？\n這個動作無法復原，建議先匯出 JSON 備份。");
+    if (!confirmed) return;
+    const previous = [...tasks];
+    tasks = [];
+    if (!saveTasks()) {
+      tasks = previous;
+      return;
+    }
+    renderAll();
+    announce("全部備忘錄已清除");
+  }
+
+  elements.navItems.forEach((button) => button.addEventListener("click", () => changeView(button.dataset.view)));
+  elements.goViewButtons.forEach((button) => button.addEventListener("click", () => changeView(button.dataset.goView)));
+  elements.quickAddForm.addEventListener("submit", addTask);
+  elements.input.addEventListener("input", () => { elements.characterCount.textContent = `${elements.input.value.length} / 500`; });
+  [elements.search, elements.categoryFilter, elements.statusFilter, elements.sortFilter].forEach((control) => control.addEventListener("input", renderAll));
+  elements.undoDelete.addEventListener("click", undoDelete);
+  elements.exportJson.addEventListener("click", exportJson);
+  elements.exportText.addEventListener("click", exportText);
+  elements.importJson.addEventListener("change", importJson);
+  elements.themeToggle.addEventListener("click", toggleTheme);
+  elements.settingsThemeToggle.addEventListener("click", toggleTheme);
+  elements.clearAll.addEventListener("click", clearAllTasks);
+
+  // 其他分頁若修改同一份 localStorage，目前分頁會即時重新載入資料。
+  window.addEventListener("storage", (event) => {
+    if (event.key === STORAGE_KEY) {
+      tasks = loadTasks();
+      renderAll();
+      announce("備忘錄已從其他分頁更新");
+    }
+  });
+
+  applyTheme(preferredTheme());
+  updateClock();
+  window.setInterval(updateClock, 30000);
+  renderAll();
 });
