@@ -4,11 +4,12 @@
   <meta charset="utf-8">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="description" content="EliNotebook 2.2｜支援多格式匯入匯出的本機備忘錄工具。">
+  <meta name="description" content="EliNotebook 3.1｜具備本機PIN驗證的私人財務中心。">
   <meta name="referrer" content="no-referrer">
   <meta name="theme-color" content="#37413a">
-  <title>EliNotebook 2.2｜個人備忘錄</title>
-  <link rel="stylesheet" href="./style/style.css?v=2.2.0">
+  <title>EliNotebook 3.1｜私人財務中心</title>
+  <link rel="stylesheet" href="./style/style.css?v=3.1.0">
+  <link rel="stylesheet" href="./style/accounting.css?v=3.1.0">
 </head>
 <body>
   <a class="skip-link" href="#main-content">跳至主要內容</a>
@@ -16,7 +17,7 @@
   <header class="topbar">
     <a class="brand" href="../index.html" aria-label="返回葉秀庭個人網頁">
       <span class="brand-mark" aria-hidden="true">E</span>
-      <span><strong>EliNotebook</strong><small>PERSONAL NOTES · 2.2 IMPORT</small></span>
+      <span><strong>EliNotebook</strong><small>PRIVATE FINANCE · 3.1 LOCAL</small></span>
     </a>
     <div class="topbar-actions">
       <time id="clock" aria-label="目前時間">載入時間中</time>
@@ -29,6 +30,7 @@
   <div class="app-shell">
     <nav class="side-nav" aria-label="EliNotebook 功能選單">
       <button class="nav-item active" type="button" data-view="home" aria-current="page"><span aria-hidden="true">⌂</span><b>首頁</b></button>
+      <button class="nav-item" type="button" data-view="accounting"><span aria-hidden="true">$</span><b>財務</b></button>
       <button class="nav-item" type="button" data-view="notes"><span aria-hidden="true">✎</span><b>備忘錄</b></button>
       <button class="nav-item" type="button" data-view="completed"><span aria-hidden="true">✓</span><b>已完成</b></button>
       <button class="nav-item" type="button" data-view="backup"><span aria-hidden="true">⇩</span><b>備份</b></button>
@@ -70,6 +72,132 @@
           <div class="section-heading"><div><p class="eyebrow">RECENT NOTES</p><h2 id="recent-title">最近新增</h2></div><button class="text-button" type="button" data-go-view="notes">查看全部</button></div>
           <div class="task-list" id="recent-tasks"></div>
         </section>
+      </section>
+
+      <section class="view accounting-view" id="view-accounting" data-view-panel="accounting">
+        <section class="finance-auth" id="finance-auth" aria-labelledby="finance-auth-title">
+          <div class="finance-auth-card">
+            <span class="finance-lock-mark" aria-hidden="true">$</span>
+            <p class="eyebrow">LOCAL IDENTITY CHECK</p>
+            <h1 id="finance-auth-title">私人財務中心</h1>
+            <p id="finance-auth-description">請先驗證本機PIN，才會顯示財務資料。</p>
+            <form id="finance-auth-form" class="finance-auth-form">
+              <label>本機PIN<input id="finance-pin" type="password" inputmode="numeric" pattern="[0-9]{6,12}" minlength="6" maxlength="12" autocomplete="current-password" placeholder="請輸入6–12位數字" required></label>
+              <label id="finance-pin-confirm-label" hidden>再次輸入PIN<input id="finance-pin-confirm" type="password" inputmode="numeric" pattern="[0-9]{6,12}" minlength="6" maxlength="12" autocomplete="new-password" placeholder="請再次輸入PIN"></label>
+              <button class="primary-button" id="finance-auth-submit" type="submit">驗證並開啟</button>
+            </form>
+            <p class="finance-auth-feedback" id="finance-auth-feedback" aria-live="polite"></p>
+            <button class="text-button finance-forgot" id="finance-forgot-pin" type="button">忘記PIN／清除本機財務資料</button>
+            <aside><strong>重要：</strong>這是共用裝置的畫面防護，不是伺服器登入，也不會加密localStorage。熟悉瀏覽器工具的人仍可能讀取資料，請勿存放銀行帳號、密碼或客戶個資。</aside>
+          </div>
+        </section>
+
+        <div id="finance-content" hidden>
+        <div class="page-heading accounting-heading"><p class="eyebrow">PRIVATE FINANCE</p><h1>私人財務中心</h1><p>已通過本機驗證；收入、支出及帳戶轉移只保存在目前裝置的這個瀏覽器。</p></div>
+
+        <aside class="accounting-local-notice"><strong>本機防護已開啟</strong><span>沒有LINE、Google Sheets或跨裝置同步；PIN只遮蔽畫面，不等於資料加密。離開分頁或閒置5分鐘會自動上鎖。</span><button id="finance-lock" type="button">立即上鎖</button></aside>
+
+        <nav class="accounting-tabs" aria-label="記帳功能分頁">
+          <button class="accounting-tab active" type="button" data-accounting-tab="quick" aria-current="page">快速記帳</button>
+          <button class="accounting-tab" type="button" data-accounting-tab="recent">最近紀錄</button>
+          <button class="accounting-tab" type="button" data-accounting-tab="monthly">本月匯總</button>
+          <button class="accounting-tab" type="button" data-accounting-tab="cashflow">現金流</button>
+          <button class="accounting-tab" type="button" data-accounting-tab="category-chart">分類圖表</button>
+          <button class="accounting-tab" type="button" data-accounting-tab="balances">帳戶餘額</button>
+          <button class="accounting-tab" type="button" data-accounting-tab="trends">收支趨勢</button>
+          <button class="accounting-tab" type="button" data-accounting-tab="export">Excel／Numbers 下載</button>
+          <button class="accounting-tab" type="button" data-accounting-tab="settings">帳戶與分類設定</button>
+        </nav>
+
+        <div class="accounting-panel active" data-accounting-panel="quick">
+          <div class="accounting-summary" aria-label="本月收支摘要">
+            <article><span>本月收入</span><strong id="accounting-income">$0</strong></article>
+            <article><span>本月支出</span><strong id="accounting-expense">$0</strong></article>
+            <article><span>本月結餘</span><strong id="accounting-net">$0</strong></article>
+          </div>
+
+          <div class="entry-methods">
+            <article class="money-card">
+              <p class="eyebrow">NATURAL LANGUAGE</p><h2>自然語句記帳</h2>
+              <p>例如：「午餐120現金」、「薪水50000玉山收入」。系統會先解析，再讓你確認。</p>
+              <form id="natural-entry-form"><label for="natural-entry">輸入一句話</label><div class="inline-entry"><input id="natural-entry" maxlength="100" placeholder="午餐 120 現金"><button class="primary-button" type="submit">解析並新增</button></div></form>
+              <p class="entry-feedback" id="natural-feedback" aria-live="polite"></p>
+            </article>
+
+            <article class="money-card">
+              <p class="eyebrow">FIXED FORMAT</p><h2>固定格式記帳</h2>
+              <p>格式：類型｜分類｜金額｜帳戶｜備註，例如「支出｜交通｜80｜現金｜公車」。</p>
+              <form id="fixed-entry-form"><label for="fixed-entry">輸入固定格式</label><div class="inline-entry"><input id="fixed-entry" maxlength="160" placeholder="支出｜餐飲｜120｜現金｜午餐"><button class="secondary-button" type="submit">新增紀錄</button></div></form>
+              <p class="entry-feedback" id="fixed-feedback" aria-live="polite"></p>
+            </article>
+          </div>
+
+          <form class="money-form money-card" id="button-entry-form">
+            <div class="money-form-heading"><div><p class="eyebrow">BUTTON ENTRY</p><h2>按鈕式完整記帳</h2></div><span>欄位確認後才會儲存</span></div>
+            <div class="type-switch" role="group" aria-label="交易類型">
+              <button class="type-button active" type="button" data-money-type="expense">支出</button>
+              <button class="type-button" type="button" data-money-type="income">收入</button>
+              <button class="type-button" type="button" data-money-type="transfer">帳戶轉移</button>
+            </div>
+            <input id="money-type" type="hidden" value="expense">
+            <div class="money-fields">
+              <label>金額<input id="money-amount" type="number" min="1" step="1" inputmode="decimal" placeholder="0" required></label>
+              <label>分類<select id="money-category"></select></label>
+              <label>付款／來源帳戶<select id="money-account"></select></label>
+              <label id="money-to-account-label" hidden>轉入帳戶<select id="money-to-account"></select></label>
+              <label>日期<input id="money-date" type="date" required></label>
+              <label class="wide-field">備註<input id="money-note" maxlength="100" placeholder="選填，請勿輸入帳號或個資"></label>
+            </div>
+            <button class="primary-button" type="submit">儲存這筆紀錄</button>
+          </form>
+        </div>
+
+        <div class="accounting-panel" data-accounting-panel="recent">
+          <div class="accounting-toolbar"><label>月份<input id="transaction-month" type="month"></label><label>類型<select id="transaction-type-filter"><option value="all">全部</option><option value="expense">支出</option><option value="income">收入</option><option value="transfer">轉移</option></select></label><label class="transaction-search">搜尋<input id="transaction-search" type="search" placeholder="搜尋分類或備註"></label></div>
+          <p class="result-count" id="transaction-result-count">共 0 筆</p>
+          <div class="transaction-list" id="transaction-list"></div>
+        </div>
+
+        <div class="accounting-panel" data-accounting-panel="monthly">
+          <div class="month-selector"><button id="month-previous" type="button" aria-label="上一個月">‹</button><input id="summary-month" type="month"><button id="month-next" type="button" aria-label="下一個月">›</button></div>
+          <div class="accounting-summary large"><article><span>收入</span><strong id="summary-income">$0</strong></article><article><span>支出</span><strong id="summary-expense">$0</strong></article><article><span>淨現金流</span><strong id="summary-net">$0</strong></article><article><span>交易筆數</span><strong id="summary-count">0</strong></article></div>
+          <div class="money-card"><h2>分類明細</h2><div id="monthly-category-list" class="category-summary-list"></div></div>
+        </div>
+
+        <div class="accounting-panel" data-accounting-panel="cashflow">
+          <div class="accounting-panel-heading"><div><p class="eyebrow">CASH FLOW</p><h2>每日現金流</h2></div><p>收入減去支出；帳戶轉移不計入整體收支。</p></div>
+          <div class="cashflow-table-wrap"><table class="cashflow-table"><thead><tr><th>日期</th><th>收入</th><th>支出</th><th>淨額</th></tr></thead><tbody id="cashflow-body"></tbody></table></div>
+        </div>
+
+        <div class="accounting-panel" data-accounting-panel="category-chart">
+          <article class="money-card"><p class="eyebrow">CATEGORY CHART</p><h2>本月支出分類</h2><div id="expense-chart" class="bar-chart"></div></article>
+        </div>
+
+        <div class="accounting-panel" data-accounting-panel="balances">
+          <article class="money-card"><p class="eyebrow">ACCOUNT BALANCE</p><h2>帳戶餘額</h2><div id="balance-chart" class="bar-chart"></div></article>
+        </div>
+
+        <div class="accounting-panel" data-accounting-panel="trends">
+          <article class="money-card"><p class="eyebrow">SIX-MONTH TREND</p><h2>近6個月收支趨勢</h2><div class="trend-legend"><span class="income-dot">收入</span><span class="expense-dot">支出</span></div><div id="trend-chart" class="trend-chart"></div></article>
+        </div>
+
+        <div class="accounting-panel" data-accounting-panel="export">
+          <div class="account-settings-grid export-grid">
+            <article class="money-card"><h2>完整帳務備份</h2><p>JSON可完整還原帳戶、分類和交易紀錄。</p><button id="money-export-json" class="primary-button" type="button">匯出帳務 JSON</button></article>
+            <article class="money-card"><h2>Excel／Numbers</h2><p>CSV可由Excel、Numbers及Google試算表開啟。</p><button id="money-export-csv" class="secondary-button" type="button">下載帳務 CSV</button></article>
+            <article class="money-card"><h2>匯入帳務</h2><p>支援本工具JSON或CSV；匯入前會檢查重複紀錄。</p><label class="file-button" for="money-import-file">選擇帳務檔案</label><input id="money-import-file" class="visually-hidden-file" type="file" accept=".json,.csv,application/json,text/csv"></article>
+          </div>
+          <aside class="integration-status"><strong>下載及匯入只在目前瀏覽器處理</strong><p>匯出的JSON與CSV沒有加密，請勿放入公開GitHub、公開雲端資料夾或傳給他人。</p></aside>
+        </div>
+
+        <div class="accounting-panel" data-accounting-panel="settings">
+          <div class="account-settings-grid">
+            <article class="money-card"><p class="eyebrow">ACCOUNTS</p><h2>帳戶管理</h2><form id="account-form" class="stack-form"><label>帳戶名稱<input id="account-name" maxlength="30" placeholder="例如：現金、玉山銀行" required></label><label>期初餘額<input id="account-balance" type="number" step="1" value="0" required></label><button class="primary-button" type="submit">新增帳戶</button></form><div id="account-list" class="account-list"></div></article>
+            <article class="money-card"><p class="eyebrow">CATEGORIES</p><h2>自訂分類</h2><form id="category-form" class="stack-form"><label>分類類型<select id="category-type"><option value="expense">支出分類</option><option value="income">收入分類</option></select></label><label>分類名稱<input id="category-name" maxlength="20" placeholder="例如：進修" required></label><button class="secondary-button" type="submit">新增分類</button></form><div id="custom-category-list" class="account-list"></div></article>
+          </div>
+          <aside class="integration-status"><strong>LINE與Google Sheets尚未啟用</strong><p>目前沒有後端、私人帳號綁定或雲端同步。請勿把LINE密鑰或Google憑證寫進GitHub程式碼。</p></aside>
+        </div>
+        </div>
       </section>
 
       <section class="view" id="view-notes" data-view-panel="notes">
@@ -129,11 +257,11 @@
       <p class="eyebrow">LOCAL STORAGE NOTICE</p>
       <h2 id="local-dialog-title">使用前請先了解資料保存方式</h2>
       <div id="local-dialog-description">
-        <p><strong>備忘錄只會保存在目前裝置的這個瀏覽器。</strong></p>
+        <p><strong>備忘錄與帳務資料只會保存在目前裝置的這個瀏覽器。</strong></p>
         <ul>
           <li>不會上傳至 GitHub，也沒有帳號或雲端同步功能。</li>
           <li>換裝置、換瀏覽器或使用無痕模式時，不會顯示原有內容。</li>
-          <li>清除瀏覽器網站資料後，內容可能永久遺失，請定期匯出備份。</li>
+          <li>清除瀏覽器網站資料後，內容可能永久遺失，請分別匯出備忘錄及帳務備份。</li>
           <li>請勿記錄客戶個資、病歷、保單號碼或其他敏感資料。</li>
         </ul>
       </div>
@@ -141,6 +269,7 @@
     </div>
   </div>
   <div class="screen-reader-status" id="live-status" aria-live="polite"></div>
-  <script src="./javascript/main.js?v=2.2.0" defer></script>
+  <script src="./javascript/main.js?v=3.1.0" defer></script>
+  <script src="./javascript/accounting.js?v=3.1.0" defer></script>
 </body>
 </html>

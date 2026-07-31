@@ -1,6 +1,6 @@
 "use strict";
 
-// EliNotebook 2.2
+// EliNotebook 3.1
 // 資料只會儲存在目前瀏覽器的 localStorage，不會上傳至伺服器。
 // v2 採用物件格式，並會自動把舊版 v1 的純文字陣列轉換成新版資料。
 
