@@ -305,6 +305,81 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .input-wrap input{padding-right:50px}
 .input-wrap b{position:absolute;right:13px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:12px;pointer-events:none}
 .field small{color:var(--muted);font-size:11px}
+/* 範例值只做灰色提示，欄位本身保持空白，點下去就能直接輸入 */
+.field input::placeholder,.field textarea::placeholder,.search input::placeholder{color:var(--muted);opacity:.62}
+.field textarea::placeholder{line-height:1.6}
+
+/* -------- 欄位說明區塊 -------- */
+.field-note{
+  margin:22px 0 14px;padding:14px 16px;
+  background:var(--surface-alt);border-left:3px solid var(--gold);
+}
+.field-note strong{display:block;font-size:13px;font-weight:700;margin-bottom:6px;letter-spacing:.02em}
+.field-note p{margin:0;font-size:12.5px;line-height:1.75;color:var(--muted)}
+.field-note b{color:var(--ink);font-weight:700}
+.field-note code{
+  font-family:var(--mono,ui-monospace,SFMono-Regular,Menlo,Consolas,monospace);
+  font-size:11.5px;background:var(--surface);border:1px solid var(--line);
+  padding:1px 6px;white-space:nowrap;overflow-wrap:break-word;
+}
+@media (max-width:520px){ .field-note code{white-space:normal} }
+
+/* -------- 輸入檢查／防呆提示 -------- */
+.input-check{margin:14px 0 0;display:grid;gap:6px}
+.input-check .chk{margin:0;font-size:12.5px;line-height:1.55;padding:9px 12px;border-left:3px solid var(--line);background:var(--surface-alt);border-radius:0}
+.input-check .chk b{display:inline-block;font-weight:700;font-size:11px;letter-spacing:.04em;margin-right:8px;padding:1px 7px;border-radius:2px}
+.input-check .chk.error{border-left-color:var(--warn)}
+.input-check .chk.error b{background:var(--warn);color:var(--brand-cream)}
+.input-check .chk.warn{border-left-color:var(--gold)}
+.input-check .chk.warn b{background:var(--gold);color:var(--brand-cream)}
+.input-check .chk.info{border-left-color:var(--green)}
+.input-check .chk.info b{background:var(--green);color:var(--brand-cream)}
+
+/* -------- 計算式 -------- */
+.panel-tools{display:flex;justify-content:flex-end;margin:-8px 0 18px}
+.formula-toggle{
+  border:1px solid var(--line);background:var(--surface);color:var(--ink);
+  padding:9px 15px;font-size:12.5px;font-weight:600;min-height:40px;
+  transition:background .18s,color .18s,border-color .18s;
+}
+.formula-toggle[aria-pressed="true"]{background:var(--brand-deep);color:var(--brand-cream);border-color:var(--brand-deep)}
+@media (hover:hover) and (pointer:fine){ .formula-toggle:hover{border-color:var(--green)} }
+.result-card .formula{display:none;margin-top:9px;padding-top:8px;border-top:1px dashed var(--line);font-size:11px;line-height:1.55;color:var(--muted);overflow-wrap:anywhere}
+.calculator-area.show-formula .result-card .formula:not(:empty){display:block}
+
+/* -------- 圖表 -------- */
+.chart-wrap{margin:26px 0 0;padding:14px 14px 10px;background:var(--surface-alt);border:1px solid var(--line)}
+.chart-wrap figcaption{font-size:12px;font-weight:700;letter-spacing:.05em;color:var(--muted);margin-bottom:10px}
+.chart-box{min-height:60px}
+.chart-box svg{width:100%;height:auto;display:block;max-width:100%}
+.chart-empty{margin:6px 0 10px;font-size:12.5px;color:var(--muted)}
+.chart-x{margin:6px 0 0;font-size:11px;color:var(--muted);text-align:center}
+.chart-grid{stroke:var(--line);stroke-width:1}
+.chart-grid.zero{stroke:var(--muted);stroke-width:1.4}
+.chart-axis{fill:var(--muted);font-size:11px;font-family:inherit}
+.chart-line{fill:none;stroke-width:2.4;stroke-linejoin:round;stroke-linecap:round}
+.chart-line.dashed{stroke-dasharray:6 5;stroke-width:2}
+.chart-area{opacity:.13;stroke:none}
+.chart-dot{stroke:var(--surface-alt);stroke-width:2}
+.chart-line.s-a,.chart-dot.s-a{stroke:var(--green)}
+.chart-line.s-b,.chart-dot.s-b{stroke:var(--gold)}
+.chart-line.s-c,.chart-dot.s-c{stroke:var(--warn)}
+.chart-area.s-a{fill:var(--green)}
+.chart-area.s-b{fill:var(--gold)}
+.chart-area.s-c{fill:var(--warn)}
+.chart-dot.s-a{fill:var(--green)}
+.chart-dot.s-b{fill:var(--gold)}
+.chart-dot.s-c{fill:var(--warn)}
+.chart-bar.s-a{fill:var(--green)}
+.chart-bar.s-b{fill:var(--gold)}
+.chart-bar.s-c{fill:var(--warn)}
+.chart-bar.neg{fill:var(--warn)}
+.chart-legend{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:10px;font-size:12px;color:var(--muted)}
+.chart-legend i{display:inline-block;width:16px;height:3px;vertical-align:middle;margin-right:7px;border-radius:2px}
+.chart-legend i.box{height:11px;width:11px;border-radius:0}
+.chart-legend i.s-a{background:var(--green)}
+.chart-legend i.s-b{background:var(--gold)}
+.chart-legend i.s-c{background:var(--warn)}
 
 .split-input{display:grid;grid-template-columns:1fr;gap:16px;margin:26px 0}
 .mini-results{display:grid;gap:10px;align-content:start}
@@ -450,6 +525,10 @@ footer p{font-size:12px;color:#bfc6c1;max-width:700px}
   tr{break-inside:avoid}
   .formula-notes{padding:16px 0;break-before:page}
   a[href]::after{content:""}
+  .panel-tools{display:none}
+  .result-card .formula:not(:empty){display:block!important}
+  .chart-wrap{break-inside:avoid;border:1px solid #999;background:#fff}
+  .input-check .chk{background:#f4f4f4}
 }
 
 /* =========================================================================
