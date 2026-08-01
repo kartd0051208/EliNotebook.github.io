@@ -34,7 +34,7 @@
     root.setAttribute("data-theme",actual);
     root.style.colorScheme=actual;
     var meta=document.querySelector('meta[name="theme-color"]:not([media])');
-    if(meta)meta.setAttribute("content",actual==="dark"?"#20211f":"#e8e4dd");
+    if(meta)meta.setAttribute("content",actual==="dark"?"#191a18":"#e9e5de");
     paint();
   }
 
@@ -68,13 +68,37 @@
     else if(mq.addListener)mq.addListener(onChange);
   }
 
+  /* 找出被點到的切換鈕：優先用 closest，舊瀏覽器則自行往上找 */
+  function toggleFrom(node){
+    if(node&&node.closest)return node.closest("[data-theme-toggle]");
+    while(node&&node.nodeType===1){
+      if(node.hasAttribute&&node.hasAttribute("data-theme-toggle"))return node;
+      node=node.parentNode;
+    }
+    return null;
+  }
+
+  var bound=false;
   function init(){
     apply();
-    document.addEventListener("click",function(e){
-      var t=e.target.closest?e.target.closest("[data-theme-toggle]"):null;
-      if(t){ e.preventDefault(); cycle(); }
-    });
+    /* 直接綁在每個按鈕上（最可靠） */
+    var buttons=document.querySelectorAll("[data-theme-toggle]");
+    for(var i=0;i<buttons.length;i++){
+      if(buttons[i].getAttribute("data-theme-bound"))continue;
+      buttons[i].setAttribute("data-theme-bound","1");
+      buttons[i].addEventListener("click",function(e){ e.preventDefault(); cycle(); });
+    }
+    /* 再加一層事件委派，處理事後才插入的按鈕 */
+    if(!bound){
+      bound=true;
+      document.addEventListener("click",function(e){
+        var t=toggleFrom(e.target);
+        if(t&&!t.getAttribute("data-theme-bound")){ e.preventDefault(); cycle(); }
+      });
+    }
   }
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);
   else init();
+  /* 保險：若 DOMContentLoaded 因故沒觸發，載入完成後再補跑一次 */
+  window.addEventListener("load",init);
 })();

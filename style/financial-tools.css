@@ -3,8 +3,9 @@
    行動優先 + 流體排版（auto-fit / Container Query），不寫死欄數與斷點
    ========================================================================= */
 /* -------------------------------------------------------------------------
-   莫蘭迪色票：低彩度、帶灰的粉塵調。日夜兩套，每個文字／背景配對
-   都經過 WCAG AA（4.5:1）驗算，最低 4.61:1。
+   莫蘭迪色票：低彩度、帶灰的粉塵調。日夜兩套。
+   夜間文字對比拉到 AAA（7:1）——淺字在深底會產生暈光，4.5:1 的下限
+   對中文小字並不舒服。白天採 5.5:1 以保留明暗層次與莫蘭迪彩度。
    主題由 <html data-theme="light|dark"> 決定，theme.js 負責切換與記憶。
    ------------------------------------------------------------------------- */
 :root{
@@ -19,78 +20,78 @@
   --pad-r:max(var(--gutter),var(--safe-r));
   --header-h:76px;
 
-  /* 提示徽章：深底白字，兩個主題共用（白字對底 4.6:1 以上） */
-  --badge-warn:#9e675b;
-  --badge-gold:#84734e;
-  --badge-info:#69796b;
+  /* 提示徽章：深底白字，兩個主題共用（白字對底 5.5:1 以上） */
+  --badge-warn:#8e5c52;
+  --badge-gold:#776746;
+  --badge-info:#5d6c60;
   --on-badge:#ffffff;
 }
 
 /* ---- 白天 ---- */
 :root,
 :root[data-theme="light"]{
-  --paper:#e8e4dd;
-  --surface:#f2efe9;
-  --surface-alt:#dedad2;
-  --thead-bg:#d5d0c6;
-  --ink:#33373a;
-  --line:#c8c2b7;
-  --muted:#5d5752;
-  --green:#4f5b51;
-  --gold:#6b5d3f;
-  --good:#556257;
-  --warn:#80534a;
-  --brand-deep:#4a544d;
-  --on-brand:#f4f2ec;
-  --on-brand-muted:#c9c8c1;
-  --brand-accent:#d0c5ae;
-  --focus-ring:rgba(79,91,81,.28);
-  --shadow:0 18px 55px rgba(51,55,58,.10);
+  --paper:#e9e5de;
+  --surface:#f3f0ea;
+  --surface-alt:#ded9d1;
+  --thead-bg:#d3cec4;
+  --ink:#2b2f31;
+  --line:#c3bdb2;
+  --muted:#4f4b46;
+  --green:#444e45;
+  --gold:#5f5338;
+  --good:#4b574d;
+  --warn:#724a42;
+  --brand-deep:#454e47;
+  --on-brand:#f6f4ee;
+  --on-brand-muted:#e8e8e4;
+  --brand-accent:#cfc5ae;
+  --focus-ring:rgba(54,62,55,.30);
+  --shadow:0 18px 55px rgba(43,47,49,.10);
   color-scheme:light;
 }
 
-/* ---- 夜間 ---- */
+/* ---- 夜間（文字對比拉到 AAA，解決淺字在深底不好讀的問題）---- */
 :root[data-theme="dark"]{
-  --paper:#20211f;
-  --surface:#292b28;
-  --surface-alt:#31332f;
-  --thead-bg:#383a36;
-  --ink:#e4e1d9;
-  --line:#43453f;
-  --muted:#a9a39d;
-  --green:#99a89c;
-  --gold:#ac9a72;
-  --good:#90a093;
-  --warn:#bb9289;
-  --brand-deep:#2f3531;
-  --on-brand:#f2efe9;
-  --on-brand-muted:#c9c8c1;
-  --brand-accent:#ad9b73;
-  --focus-ring:rgba(153,168,156,.30);
-  --shadow:0 18px 55px rgba(0,0,0,.45);
+  --paper:#191a18;
+  --surface:#212320;
+  --surface-alt:#292b27;
+  --thead-bg:#31332e;
+  --ink:#ece9e1;
+  --line:#3d3f3a;
+  --muted:#c4bfbb;
+  --green:#b9c3ba;
+  --gold:#bfb192;
+  --good:#a9b5ab;
+  --warn:#caaba4;
+  --brand-deep:#2b302c;
+  --on-brand:#f4f2ec;
+  --on-brand-muted:#cfcec7;
+  --brand-accent:#ae9c75;
+  --focus-ring:rgba(185,195,186,.32);
+  --shadow:0 18px 55px rgba(0,0,0,.55);
   color-scheme:dark;
 }
 
-/* 未載入 theme.js 時（或使用者選「自動」前），仍跟隨系統 */
+/* 未載入 theme.js 時（或使用者選「自動」），仍跟隨系統 */
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
-    --paper:#20211f;
-    --surface:#292b28;
-    --surface-alt:#31332f;
-    --thead-bg:#383a36;
-    --ink:#e4e1d9;
-    --line:#43453f;
-    --muted:#a9a39d;
-    --green:#99a89c;
-    --gold:#ac9a72;
-    --good:#90a093;
-    --warn:#bb9289;
-    --brand-deep:#2f3531;
-    --on-brand:#f2efe9;
-    --on-brand-muted:#c9c8c1;
-    --brand-accent:#ad9b73;
-    --focus-ring:rgba(153,168,156,.30);
-    --shadow:0 18px 55px rgba(0,0,0,.45);
+  --paper:#191a18;
+  --surface:#212320;
+  --surface-alt:#292b27;
+  --thead-bg:#31332e;
+  --ink:#ece9e1;
+  --line:#3d3f3a;
+  --muted:#c4bfbb;
+  --green:#b9c3ba;
+  --gold:#bfb192;
+  --good:#a9b5ab;
+  --warn:#caaba4;
+  --brand-deep:#2b302c;
+  --on-brand:#f4f2ec;
+  --on-brand-muted:#cfcec7;
+  --brand-accent:#ae9c75;
+    --focus-ring:rgba(185,195,186,.32);
+    --shadow:0 18px 55px rgba(0,0,0,.55);
     color-scheme:dark;
   }
 }
@@ -140,11 +141,11 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .brand>span{
   flex:none;width:36px;height:36px;border:1px solid var(--brand-accent);
   display:grid;place-items:center;font-family:Georgia,serif;font-size:22px;
-  color:var(--brand-deep);background:var(--surface);
+  color:var(--green);background:var(--surface);
 }
 .brand div{display:flex;flex-direction:column;line-height:1.2;min-width:0}
 .brand strong{font-family:Georgia,"Noto Serif TC",serif;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.brand small{font-size:10px;letter-spacing:.16em;color:var(--muted)}
+.brand small{font-size:10.5px;letter-spacing:.16em;color:var(--muted)}
 .header-actions{display:flex;align-items:center;gap:10px;flex:none}
 .back-link{flex:none;font-size:13px;font-weight:600;border-bottom:1px solid var(--gold);padding:10px 2px;white-space:nowrap}
 .back-link:active,.brand:active{opacity:.7}
@@ -163,12 +164,12 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
   font-size:12.5px;font-weight:600;line-height:1;
   transition:background .18s,border-color .18s,color .18s;
 }
-.theme-toggle svg{width:17px;height:17px;flex:none;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.theme-toggle svg{width:17px;height:17px;flex:none;pointer-events:none;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .theme-toggle svg .fill{fill:currentColor;stroke:none}
 .theme-toggle[data-mode="auto"] svg{color:var(--muted)}
 .theme-toggle[data-mode="light"] svg{color:var(--gold)}
 .theme-toggle[data-mode="dark"] svg{color:var(--green)}
-.theme-label{letter-spacing:.04em}
+.theme-label{letter-spacing:.04em;pointer-events:none}
 .theme-toggle:active{transform:scale(.97)}
 @media (hover:hover) and (pointer:fine){ .theme-toggle:hover{border-color:var(--green);background:var(--surface-alt)} }
 @media (max-width:420px){
@@ -185,7 +186,8 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
   background:var(--brand-deep);color:var(--on-brand);
   display:grid;grid-template-columns:1fr;gap:clamp(28px,6vw,60px);
 }
-.eyebrow{font-size:11px;letter-spacing:.22em;color:var(--brand-accent);font-weight:700;margin:0 0 12px}
+.eyebrow{font-size:11px;letter-spacing:.22em;color:var(--gold);font-weight:700;margin:0 0 12px}
+.hero .eyebrow{color:var(--brand-accent)}
 .hero h1,.tool-index h2,.formula-notes h2,.panel-heading h2{font-family:Georgia,"Noto Serif TC",serif;font-weight:500;margin:0}
 .hero h1{font-size:clamp(38px,11vw,92px);line-height:1.06}
 .hero>div>p:last-child{max-width:720px;color:var(--on-brand-muted);font-size:clamp(15px,3.6vw,17px)}
@@ -341,7 +343,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .calculator-area.is-loading{opacity:.4}
 .calculator-area:focus{outline:none}
 .tool-tags{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:24px}
-.tool-tags span{border:1px solid var(--line);color:var(--gold);padding:5px 9px;font-size:11px}
+.tool-tags span{border:1px solid var(--line);color:var(--gold);padding:5px 10px;font-size:11.5px}
 
 .panel-heading{display:block;border-bottom:1px solid var(--line);padding-bottom:20px;margin-bottom:24px}
 .panel-heading h2{font-size:clamp(26px,6vw,50px)}
@@ -351,7 +353,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
   .panel-heading>p{margin-top:0;text-align:right}
 }
 
-.sidebar-note{font-size:12px;color:var(--muted);padding:16px 2px 0;margin:0}
+.sidebar-note{font-size:12.5px;color:var(--muted);padding:16px 2px 0;margin:0}
 
 /* =========================================================================
    表單 — 完全流體，不寫死欄數
@@ -368,7 +370,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .input-wrap{position:relative}
 .input-wrap input{padding-right:50px}
 .input-wrap b{position:absolute;right:13px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:12px;pointer-events:none}
-.field small{color:var(--muted);font-size:11px}
+.field small{color:var(--muted);font-size:12px}
 /* 範例值只做灰色提示，欄位本身保持空白，點下去就能直接輸入 */
 .field input::placeholder,.field textarea::placeholder,.search input::placeholder{color:var(--muted);opacity:.62}
 .field textarea::placeholder{line-height:1.6}
@@ -379,7 +381,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
   background:var(--surface-alt);border-left:3px solid var(--gold);
 }
 .field-note strong{display:block;font-size:13px;font-weight:700;margin-bottom:6px;letter-spacing:.02em}
-.field-note p{margin:0;font-size:12.5px;line-height:1.75;color:var(--muted)}
+.field-note p{margin:0;font-size:13px;line-height:1.75;color:var(--muted)}
 .field-note b{color:var(--ink);font-weight:700}
 .field-note code{
   font-family:var(--mono,ui-monospace,SFMono-Regular,Menlo,Consolas,monospace);
@@ -390,7 +392,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 
 /* -------- 輸入檢查／防呆提示 -------- */
 .input-check{margin:14px 0 0;display:grid;gap:6px}
-.input-check .chk{margin:0;font-size:12.5px;line-height:1.55;padding:9px 12px;border-left:3px solid var(--line);background:var(--surface-alt);border-radius:0}
+.input-check .chk{margin:0;font-size:13px;line-height:1.55;padding:9px 12px;border-left:3px solid var(--line);background:var(--surface-alt);border-radius:0}
 .input-check .chk b{display:inline-block;font-weight:700;font-size:11px;letter-spacing:.04em;margin-right:8px;padding:1px 7px;border-radius:2px}
 .input-check .chk.error{border-left-color:var(--warn)}
 .input-check .chk.error b{background:var(--badge-warn);color:var(--on-badge)}
@@ -415,7 +417,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
   .formula-toggle,.panel-action{flex:1 1 auto;text-align:center}
   .export-status{flex:1 0 100%;text-align:right}
 }
-.result-card .formula{display:none;margin-top:9px;padding-top:8px;border-top:1px dashed var(--line);font-size:11px;line-height:1.55;color:var(--muted);overflow-wrap:anywhere}
+.result-card .formula{display:none;margin-top:9px;padding-top:8px;border-top:1px dashed var(--line);font-size:12px;line-height:1.55;color:var(--muted);overflow-wrap:anywhere}
 .calculator-area.show-formula .result-card .formula:not(:empty){display:block}
 
 /* -------- 圖表 -------- */
@@ -429,7 +431,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .cursor-dot.s-a{fill:var(--green)}
 .cursor-dot.s-b{fill:var(--gold)}
 .cursor-dot.s-c{fill:var(--warn)}
-.chart-readout{margin:10px 0 0;font-size:12px;color:var(--muted);display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px;min-height:1.6em}
+.chart-readout{margin:10px 0 0;font-size:12.5px;color:var(--muted);display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px;min-height:1.6em}
 .chart-readout strong{font-size:12.5px;color:var(--ink);font-weight:700}
 .chart-readout span{display:inline-flex;align-items:center;gap:6px}
 .chart-readout b{color:var(--ink);font-weight:700}
@@ -441,7 +443,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .chart-x{margin:6px 0 0;font-size:11px;color:var(--muted);text-align:center}
 .chart-grid{stroke:var(--line);stroke-width:1}
 .chart-grid.zero{stroke:var(--muted);stroke-width:1.4}
-.chart-axis{fill:var(--muted);font-size:11px;font-family:inherit}
+.chart-axis{fill:var(--muted);font-size:11.5px;font-family:inherit}
 .chart-line{fill:none;stroke-width:2.4;stroke-linejoin:round;stroke-linecap:round}
 .chart-line.dashed{stroke-dasharray:6 5;stroke-width:2}
 .chart-area{opacity:.13;stroke:none}
@@ -459,7 +461,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .chart-bar.s-b{fill:var(--gold)}
 .chart-bar.s-c{fill:var(--warn)}
 .chart-bar.neg{fill:var(--warn)}
-.chart-legend{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:10px;font-size:12px;color:var(--muted)}
+.chart-legend{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:10px;font-size:12.5px;color:var(--muted)}
 .chart-legend i{display:inline-block;width:16px;height:3px;vertical-align:middle;margin-right:7px;border-radius:2px}
 .chart-legend i.box{height:11px;width:11px;border-radius:0}
 .chart-legend i.s-a{background:var(--green)}
@@ -488,9 +490,9 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
   gap:10px;margin:20px 0;
 }
 .result-card{background:var(--surface-alt);border-top:3px solid var(--gold);padding:15px;min-height:104px;display:flex;flex-direction:column;min-width:0}
-.result-card>span{font-size:11px;letter-spacing:.05em;color:var(--muted)}
+.result-card>span{font-size:12px;letter-spacing:.05em;color:var(--muted)}
 .result-card strong{font-size:clamp(17px,4vw,25px);margin:auto 0 0;line-height:1.25;overflow-wrap:anywhere}
-.result-card small{font-size:10px;color:var(--muted);margin-top:6px;line-height:1.45}
+.result-card small{font-size:11.5px;color:var(--muted);margin-top:6px;line-height:1.45}
 .result-card.good{border-color:var(--good)}
 .result-card.warn{border-color:var(--warn)}
 @container calc (min-width:560px){
