@@ -1,6 +1,6 @@
 "use strict";
 
-// EliNotebook 3.7
+// EliNotebook 3.8
 // 資料只會儲存在目前瀏覽器的 localStorage，不會上傳至伺服器。
 // 舊版高／中／低優先程度會自動轉換成「緊急性 × 重要性」，原有備忘錄不會被刪除。
 
@@ -16,64 +16,26 @@ window.addEventListener("DOMContentLoaded", () => {
   const LOCAL_NOTICE_KEY = "eliNotebook.localNotice.v1";
   // 單則備忘錄最多10,000字；新增、編輯、匯入與還原都共用此上限，避免不同流程互相截斷。
   const MAX_NOTE_LENGTH = 10000;
+  const NOTE_LOCK_KDF_ITERATIONS = 600000;
   // 顏色使用固定色票代碼，避免任意色碼造成文字看不清楚或破壞深色模式。
   const CATEGORY_COLORS = ["red", "orange", "gold", "yellow", "lime", "green", "teal", "cyan", "blue", "indigo", "purple", "violet", "pink", "brown", "slate", "gray"];
   const CATEGORY_COLOR_LABELS = { red: "紅色", orange: "橘色", gold: "金色", yellow: "黃色", lime: "萊姆綠", green: "綠色", teal: "藍綠色", cyan: "青色", blue: "藍色", indigo: "靛藍色", purple: "紫色", violet: "紫羅蘭", pink: "粉色", brown: "棕色", slate: "石板灰", gray: "灰色" };
+  // 3.7.3改回精簡起始分類；使用者之後可以自行新增、改色與刪除。
   const DEFAULT_CATEGORIES = [
     { name: "工作", color: "blue", custom: false },
-    { name: "今日重點", color: "red", custom: false },
-    { name: "本週目標", color: "orange", custom: false },
-    { name: "專案", color: "indigo", custom: false },
-    { name: "會議", color: "purple", custom: false },
-    { name: "待辦", color: "gold", custom: false },
-    { name: "追蹤", color: "teal", custom: false },
-    { name: "回覆", color: "cyan", custom: false },
-    { name: "文件", color: "slate", custom: false },
-    { name: "行政", color: "gray", custom: false },
     { name: "客戶聯繫", color: "orange", custom: false },
     { name: "理賠", color: "red", custom: false },
     { name: "保單整理", color: "gold", custom: false },
-    { name: "續保提醒", color: "yellow", custom: false },
-    { name: "服務追蹤", color: "teal", custom: false },
-    { name: "教育訓練", color: "violet", custom: false },
     { name: "個人", color: "green", custom: false },
-    { name: "家庭", color: "pink", custom: false },
-    { name: "居家", color: "brown", custom: false },
-    { name: "採買", color: "orange", custom: false },
-    { name: "行程", color: "cyan", custom: false },
-    { name: "旅行", color: "blue", custom: false },
-    { name: "生日", color: "pink", custom: false },
-    { name: "人際", color: "violet", custom: false },
-    { name: "健康", color: "green", custom: false },
-    { name: "運動", color: "lime", custom: false },
-    { name: "飲食", color: "orange", custom: false },
-    { name: "睡眠", color: "indigo", custom: false },
-    { name: "就醫", color: "red", custom: false },
-    { name: "財務", color: "gold", custom: false },
-    { name: "記帳", color: "yellow", custom: false },
-    { name: "繳費", color: "red", custom: false },
-    { name: "預算", color: "teal", custom: false },
-    { name: "儲蓄", color: "green", custom: false },
-    { name: "投資", color: "blue", custom: false },
-    { name: "學習", color: "purple", custom: false },
-    { name: "閱讀", color: "indigo", custom: false },
-    { name: "課程", color: "violet", custom: false },
-    { name: "練習", color: "cyan", custom: false },
-    { name: "靈感", color: "yellow", custom: false },
-    { name: "創作", color: "pink", custom: false },
-    { name: "語言", color: "teal", custom: false },
-    { name: "習慣", color: "lime", custom: false },
-    { name: "目標", color: "red", custom: false },
-    { name: "反思", color: "slate", custom: false },
-    { name: "感恩", color: "pink", custom: false },
-    { name: "娛樂", color: "purple", custom: false },
-    { name: "收藏", color: "brown", custom: false },
-    { name: "維修", color: "orange", custom: false },
-    { name: "寵物", color: "green", custom: false },
-    { name: "社群", color: "blue", custom: false },
-    { name: "志工", color: "teal", custom: false },
     { name: "其他", color: "gray", custom: false }
   ];
+  // 只用於清理3.7.1曾自動加入、但沒有被任何備忘錄使用的47個分類。
+  // 使用中的舊分類及使用者自己建立的其他名稱都會保留。
+  const LEGACY_EXTENDED_CATEGORY_NAMES = new Set([
+    "今日重點", "本週目標", "專案", "會議", "待辦", "追蹤", "回覆", "文件", "行政", "續保提醒", "服務追蹤", "教育訓練",
+    "家庭", "居家", "採買", "行程", "旅行", "生日", "人際", "健康", "運動", "飲食", "睡眠", "就醫", "財務", "記帳", "繳費", "預算",
+    "儲蓄", "投資", "學習", "閱讀", "課程", "練習", "靈感", "創作", "語言", "習慣", "目標", "反思", "感恩", "娛樂", "收藏", "維修", "寵物", "社群", "志工"
+  ]);
   const QUADRANT_LABELS = {
     q1: "緊急且重要", q2: "重要但不緊急", q3: "緊急但不重要", q4: "不緊急且不重要"
   };
@@ -106,6 +68,9 @@ window.addEventListener("DOMContentLoaded", () => {
     categoryFilter: document.querySelector("#category-filter"),
     statusFilter: document.querySelector("#status-filter"),
     sortFilter: document.querySelector("#sort-filter"),
+    batchCategoryStart: document.querySelector("#batch-category-start"), batchCategoryToolbar: document.querySelector("#batch-category-toolbar"),
+    batchSelectVisible: document.querySelector("#batch-select-visible"), batchTargetCategory: document.querySelector("#batch-target-category"),
+    batchCategoryMove: document.querySelector("#batch-category-move"), batchCategoryCancel: document.querySelector("#batch-category-cancel"), batchSelectedCount: document.querySelector("#batch-selected-count"),
     resultCount: document.querySelector("#result-count"),
     totalCount: document.querySelector("#total-count"),
     pendingCount: document.querySelector("#pending-count"),
@@ -133,6 +98,8 @@ window.addEventListener("DOMContentLoaded", () => {
     noteCategoryName: document.querySelector("#note-category-name"),
     noteCategoryColor: document.querySelector("#note-category-color"),
     noteCategoryList: document.querySelector("#note-category-list"),
+    categoryMoveForm: document.querySelector("#category-move-form"), categoryMoveSource: document.querySelector("#category-move-source"),
+    categoryMoveTarget: document.querySelector("#category-move-target"), categoryMoveCount: document.querySelector("#category-move-count"),
     settingsThemeToggle: document.querySelector("#settings-theme-toggle"),
     clearAll: document.querySelector("#clear-all"),
     storageStatus: document.querySelector("#storage-status"),
@@ -141,7 +108,10 @@ window.addEventListener("DOMContentLoaded", () => {
     localStorageAccept: document.querySelector("#local-storage-accept"),
     toast: document.querySelector("#undo-toast"),
     undoDelete: document.querySelector("#undo-delete"),
-    liveStatus: document.querySelector("#live-status")
+    liveStatus: document.querySelector("#live-status"),
+    noteLockDialog: document.querySelector("#note-lock-dialog"), noteLockForm: document.querySelector("#note-lock-form"), noteLockTitle: document.querySelector("#note-lock-title"),
+    noteLockDescription: document.querySelector("#note-lock-description"), noteLockPassword: document.querySelector("#note-lock-password"), noteLockConfirm: document.querySelector("#note-lock-confirm"),
+    noteLockConfirmLabel: document.querySelector("#note-lock-confirm-label"), noteLockFeedback: document.querySelector("#note-lock-feedback"), noteLockCancel: document.querySelector("#note-lock-cancel"), noteLockSubmit: document.querySelector("#note-lock-submit")
   };
 
   let tasks = loadTasks();
@@ -149,6 +119,11 @@ window.addEventListener("DOMContentLoaded", () => {
   let deletedSnapshot = null;
   let undoTimer = null;
   let privacyTimer = null;
+  let batchCategoryMode = false;
+  const selectedTaskIds = new Set();
+  const unlockedNotes = new Map();
+  const noteLockFailures = new Map();
+  let noteLockRequest = null;
 
   function createId() {
     if (window.crypto && typeof window.crypto.randomUUID === "function") {
@@ -160,6 +135,55 @@ window.addEventListener("DOMContentLoaded", () => {
   function nowIso() {
     return new Date().toISOString();
   }
+
+  function bytesToBase64(bytes) {
+    let binary = "";
+    for (let index = 0; index < bytes.length; index += 0x8000) binary += String.fromCharCode(...bytes.subarray(index, index + 0x8000));
+    return btoa(binary);
+  }
+
+  function base64ToBytes(value) {
+    const binary = atob(value);
+    return Uint8Array.from(binary, (character) => character.charCodeAt(0));
+  }
+
+  function normalizeNoteLock(value) {
+    if (!value || value.version !== 1 || value.algorithm !== "AES-GCM" || value.kdf !== "PBKDF2-SHA-256") return null;
+    if (!Number.isInteger(value.iterations) || value.iterations < 100000 || value.iterations > 2000000) return null;
+    if (![value.salt, value.iv, value.ciphertext].every((item) => typeof item === "string" && item.length > 0 && /^[A-Za-z0-9+/]+=*$/.test(item))) return null;
+    if (value.salt.length > 128 || value.iv.length > 128 || value.ciphertext.length > 60000) return null;
+    return { version: 1, algorithm: "AES-GCM", kdf: "PBKDF2-SHA-256", iterations: value.iterations, salt: value.salt, iv: value.iv, ciphertext: value.ciphertext };
+  }
+
+  async function deriveNoteKey(password, salt, iterations = NOTE_LOCK_KDF_ITERATIONS) {
+    const material = await window.crypto.subtle.importKey("raw", new TextEncoder().encode(password.normalize("NFKC")), "PBKDF2", false, ["deriveKey"]);
+    return window.crypto.subtle.deriveKey({ name: "PBKDF2", hash: "SHA-256", salt, iterations }, material, { name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]);
+  }
+
+  // 特性：每則特殊備忘錄都使用獨立隨機鹽與IV，再以AES-256-GCM驗證式加密。
+  // 例如：設定密碼後，localStorage只保存密文，不再保存這一則備忘錄的原文。
+  async function encryptNoteContent(content, password) {
+    const salt = window.crypto.getRandomValues(new Uint8Array(16));
+    const key = await deriveNoteKey(password, salt);
+    return { key, lock: await encryptNoteWithKey(content, key, bytesToBase64(salt), NOTE_LOCK_KDF_ITERATIONS) };
+  }
+
+  async function encryptNoteWithKey(content, key, salt, iterations) {
+    const iv = window.crypto.getRandomValues(new Uint8Array(12));
+    const encrypted = await window.crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, new TextEncoder().encode(content));
+    return { version: 1, algorithm: "AES-GCM", kdf: "PBKDF2-SHA-256", iterations, salt, iv: bytesToBase64(iv), ciphertext: bytesToBase64(new Uint8Array(encrypted)) };
+  }
+
+  async function decryptNoteContent(lock, password) {
+    const key = await deriveNoteKey(password, base64ToBytes(lock.salt), lock.iterations);
+    const decrypted = await window.crypto.subtle.decrypt({ name: "AES-GCM", iv: base64ToBytes(lock.iv) }, key, base64ToBytes(lock.ciphertext));
+    return { key, content: new TextDecoder().decode(decrypted) };
+  }
+
+  function isNoteUnlocked(task) { return !task.lock || unlockedNotes.has(task.id); }
+  function taskContent(task) { return task.lock ? (unlockedNotes.get(task.id)?.content || "") : task.content; }
+  function taskDisplayContent(task) { return task.lock && !isNoteUnlocked(task) ? "🔒 特殊備忘錄已鎖定" : taskContent(task); }
+  function readableExportContent(task) { return task.lock ? "[特殊備忘錄已鎖定；請先解鎖後使用單筆匯出]" : task.content; }
 
   // 偵測常見敏感資料格式。這不是完整個資辨識工具，但可阻擋最常見的誤輸入。
   function detectSensitiveData(content) {
@@ -207,7 +231,7 @@ window.addEventListener("DOMContentLoaded", () => {
     if (!name) return null;
     const color = CATEGORY_COLORS.includes(value?.color) ? value.color : CATEGORY_COLORS[index % CATEGORY_COLORS.length];
     const defaultCategory = DEFAULT_CATEGORIES.find((item) => item.name === name);
-    return { name, color, custom: defaultCategory ? false : value?.custom !== false };
+    return { name, color, custom: !defaultCategory };
   }
 
   function mergeCategories(...groups) {
@@ -227,9 +251,18 @@ window.addEventListener("DOMContentLoaded", () => {
 
   function loadCategories() {
     try {
-      const saved = JSON.parse(localStorage.getItem(CATEGORIES_KEY) || "[]");
+      const stored = localStorage.getItem(CATEGORIES_KEY);
+      const saved = JSON.parse(stored || "[]");
+      const usedNames = new Set(tasks.map((task) => task.category));
+      // 3.7.1曾自動加入大量分類；升級時只移除「未被使用且不是使用者自訂」的舊自動分類。
+      const cleanedSaved = Array.isArray(saved) ? saved.filter((value) => {
+        const name = cleanCategoryName(typeof value === "string" ? value : value?.name);
+        return !LEGACY_EXTENDED_CATEGORY_NAMES.has(name) || usedNames.has(name) || value?.custom === true;
+      }) : [];
       const taskCategories = tasks.map((task) => ({ name: task.category, custom: !DEFAULT_CATEGORIES.some((item) => item.name === task.category) }));
-      return mergeCategories(DEFAULT_CATEGORIES, Array.isArray(saved) ? saved : [], taskCategories);
+      // 已存在分類設定時，以使用者保存的清單為準，刪掉的預設分類不會在下次啟動重新出現。
+      const merged = stored === null ? mergeCategories(DEFAULT_CATEGORIES, taskCategories) : mergeCategories(cleanedSaved, taskCategories);
+      return merged.length ? merged : [{ ...DEFAULT_CATEGORIES[0] }];
     } catch (error) {
       console.warn("無法讀取備忘錄分類：", error);
       return mergeCategories(DEFAULT_CATEGORIES, tasks.map((task) => task.category));
@@ -264,12 +297,13 @@ window.addEventListener("DOMContentLoaded", () => {
       const content = value.trim().slice(0, MAX_NOTE_LENGTH);
       if (!content) return null;
       const timestamp = nowIso();
-      return { id: createId(), content, category: "其他", urgent: false, important: true, completed: false, completedAt: null, createdAt: timestamp, updatedAt: timestamp };
+      return { id: createId(), content, category: "其他", urgent: false, important: true, completed: false, completedAt: null, pinned: false, lock: null, createdAt: timestamp, updatedAt: timestamp };
     }
 
     if (!value || typeof value !== "object") return null;
-    const content = typeof value.content === "string" ? value.content.trim().slice(0, MAX_NOTE_LENGTH) : "";
-    if (!content) return null;
+    const lock = normalizeNoteLock(value.lock);
+    const content = lock ? "" : (typeof value.content === "string" ? value.content.trim().slice(0, MAX_NOTE_LENGTH) : "");
+    if (!content && !lock) return null;
     const createdAt = Number.isNaN(Date.parse(value.createdAt)) ? nowIso() : value.createdAt;
     const updatedAt = Number.isNaN(Date.parse(value.updatedAt)) ? createdAt : value.updatedAt;
     // 舊版 high 對應「緊急且重要」、medium 對應「重要但不緊急」、low 對應「不緊急且不重要」。
@@ -285,6 +319,8 @@ window.addEventListener("DOMContentLoaded", () => {
       completedAt: value.completed === true
         ? (Number.isNaN(Date.parse(value.completedAt)) ? updatedAt : value.completedAt)
         : null,
+      pinned: value.pinned === true,
+      lock,
       createdAt,
       updatedAt
     };
@@ -354,20 +390,23 @@ window.addEventListener("DOMContentLoaded", () => {
 
   function createTaskCard(task) {
     const categoryInfo = categoryDefinition(task.category);
+    const locked = Boolean(task.lock) && !isNoteUnlocked(task);
+    const visibleContent = taskDisplayContent(task);
     const card = document.createElement("article");
-    card.className = `task-card category-border-${categoryInfo.color}${task.completed ? " completed" : ""}`;
+    card.className = `task-card category-border-${categoryInfo.color}${task.completed ? " completed" : ""}${task.pinned ? " pinned" : ""}${task.lock ? ` protected-note ${locked ? "locked" : "unlocked"}` : ""}`;
     card.dataset.taskId = task.id;
 
     const checkbox = document.createElement("input");
     checkbox.type = "checkbox";
     checkbox.className = "task-check";
     checkbox.checked = task.completed;
+    checkbox.disabled = locked;
     checkbox.setAttribute("aria-label", task.completed ? "設為待完成" : "標示為已完成");
 
     const content = document.createElement("div");
     content.className = "task-content";
     const paragraph = document.createElement("p");
-    paragraph.textContent = task.content;
+    paragraph.textContent = visibleContent;
     const meta = document.createElement("div");
     meta.className = "task-meta";
     meta.append(
@@ -379,6 +418,8 @@ window.addEventListener("DOMContentLoaded", () => {
       createMeta(`建立 ${formatDate(task.createdAt)}`)
     );
     if (task.completedAt) meta.append(createMeta(`完成 ${formatDate(task.completedAt)}`));
+    if (task.pinned) meta.append(createMeta("已釘選", "pinned-badge"));
+    if (task.lock) meta.append(createMeta(locked ? "內容已加密鎖定" : "本次已解鎖", locked ? "locked-badge" : "unlocked-badge"));
     if (task.updatedAt !== task.createdAt) meta.append(createMeta(`修改 ${formatDate(task.updatedAt)}`));
     content.append(paragraph, meta);
 
@@ -387,16 +428,55 @@ window.addEventListener("DOMContentLoaded", () => {
     const edit = document.createElement("button");
     edit.type = "button";
     edit.textContent = "編輯";
-    edit.setAttribute("aria-label", `編輯：${task.content}`);
+    edit.setAttribute("aria-label", `編輯：${visibleContent}`);
+    edit.disabled = locked;
     const exportOne = document.createElement("button");
     exportOne.type = "button";
     exportOne.textContent = "匯出";
-    exportOne.setAttribute("aria-label", `匯出：${task.content}`);
+    exportOne.setAttribute("aria-label", `匯出：${visibleContent}`);
+    exportOne.disabled = locked;
+    const pin = document.createElement("button");
+    pin.type = "button";
+    pin.textContent = task.pinned ? "取消釘選" : "釘選";
+    pin.setAttribute("aria-pressed", String(task.pinned));
+    pin.disabled = locked;
+    pin.title = locked ? "請先解鎖特殊備忘錄，才能變更釘選狀態" : "釘選後會優先顯示在清單前方";
+    const lock = document.createElement("button");
+    lock.type = "button";
+    lock.className = "note-lock-button";
+    lock.textContent = !task.lock ? "設定密碼" : locked ? "解鎖" : "重新鎖定";
     const remove = document.createElement("button");
     remove.type = "button";
     remove.className = "delete";
     remove.textContent = "刪除";
-    remove.setAttribute("aria-label", `刪除：${task.content}`);
+    remove.setAttribute("aria-label", `刪除：${visibleContent}`);
+    remove.disabled = locked;
+    if (batchCategoryMode) {
+      const selectOne = document.createElement("button");
+      selectOne.type = "button";
+      selectOne.className = `batch-select-button${selectedTaskIds.has(task.id) ? " selected" : ""}`;
+      selectOne.textContent = selectedTaskIds.has(task.id) ? "已選取" : "選取";
+      selectOne.setAttribute("aria-pressed", String(selectedTaskIds.has(task.id)));
+      selectOne.disabled = locked;
+      selectOne.title = locked ? "請先解鎖特殊備忘錄" : "選取後批次搬移分類";
+      selectOne.addEventListener("click", () => {
+        if (selectedTaskIds.has(task.id)) selectedTaskIds.delete(task.id); else selectedTaskIds.add(task.id);
+        const selected = selectedTaskIds.has(task.id);
+        selectOne.classList.toggle("selected", selected); selectOne.textContent = selected ? "已選取" : "選取"; selectOne.setAttribute("aria-pressed", String(selected));
+        card.classList.toggle("batch-selected", selected);
+        updateBatchCategoryToolbar();
+      });
+      actions.append(selectOne);
+      card.classList.toggle("batch-selected", selectedTaskIds.has(task.id));
+    }
+    actions.append(pin, lock);
+    if (task.lock && !locked) {
+      const removeLock = document.createElement("button");
+      removeLock.type = "button";
+      removeLock.textContent = "移除密碼";
+      removeLock.addEventListener("click", () => removeNoteLock(task.id));
+      actions.append(removeLock);
+    }
     actions.append(edit, exportOne, remove);
     card.append(checkbox, content, actions);
 
@@ -404,12 +484,19 @@ window.addEventListener("DOMContentLoaded", () => {
     remove.addEventListener("click", () => deleteTask(task.id));
     edit.addEventListener("click", () => openEditor(card, task));
     exportOne.addEventListener("click", () => exportSingleTask(task));
+    pin.addEventListener("click", () => togglePinned(task.id));
+    lock.addEventListener("click", () => {
+      if (!task.lock) openNoteLockDialog("setup", task.id);
+      else if (locked) openNoteLockDialog("unlock", task.id);
+      else relockNote(task.id);
+    });
     return card;
   }
 
   // 特性：只把使用者點選的這一則備忘錄交給共用匯出模組。
   // 效果：其他備忘錄不會被連帶匯出，內容也不會送到外部轉檔網站。
   function exportSingleTask(task) {
+    if (task.lock && !isNoteUnlocked(task)) { alert("請先解鎖這則特殊備忘錄，才能單筆匯出。"); return; }
     if (!window.EliSingleExport) { alert("單筆匯出元件未載入，請重新整理後再試。"); return; }
     const completedDate = NotesAnalytics.completionDate(task);
     window.EliSingleExport.open({
@@ -417,12 +504,13 @@ window.addEventListener("DOMContentLoaded", () => {
       title: "EliNotebook 單筆備忘錄",
       filenameBase: `EliNotebook-note-${String(task.id).slice(0, 18)}`,
       fields: [
-        { label: "內容", value: task.content },
+        { label: "內容", value: taskContent(task) },
         { label: "分類", value: task.category },
         { label: "狀態", value: task.completed ? "已完成" : "待完成" },
         { label: "緊急性", value: task.urgent ? "緊急" : "不緊急" },
         { label: "重要性", value: task.important ? "重要" : "不重要" },
         { label: "四象限", value: QUADRANT_LABELS[quadrantKey(task)] },
+        { label: "釘選", value: task.pinned ? "是" : "否" },
         { label: "建立時間", value: formatDate(task.createdAt) },
         { label: "修改時間", value: formatDate(task.updatedAt) },
         { label: "完成時間", value: completedDate ? formatDate(completedDate.toISOString()) : "尚未完成" }
@@ -430,13 +518,101 @@ window.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  function openNoteLockDialog(mode, taskId) {
+    const task = tasks.find((item) => item.id === taskId);
+    if (!task || !window.crypto?.subtle) { alert("目前瀏覽器不支援安全加密功能，無法鎖定特殊備忘錄。"); return; }
+    noteLockRequest = { mode, taskId };
+    elements.noteLockForm.reset();
+    elements.noteLockFeedback.textContent = "";
+    elements.noteLockConfirmLabel.hidden = mode === "unlock";
+    elements.noteLockConfirm.required = mode === "setup";
+    elements.noteLockTitle.textContent = mode === "setup" ? "鎖定特殊備忘錄" : "解鎖特殊備忘錄";
+    elements.noteLockDescription.textContent = mode === "setup"
+      ? "設定後，這一則內容會以AES-256-GCM加密保存；分類、狀態與日期仍會顯示。"
+      : "密碼只在這台裝置用來解密，不會傳送到GitHub或其他服務。";
+    elements.noteLockSubmit.textContent = mode === "setup" ? "加密並鎖定" : "解鎖";
+    elements.noteLockDialog.hidden = false;
+    window.setTimeout(() => elements.noteLockPassword.focus(), 0);
+  }
+
+  function closeNoteLockDialog() {
+    noteLockRequest = null;
+    elements.noteLockDialog.hidden = true;
+    elements.noteLockForm.reset();
+    elements.noteLockFeedback.textContent = "";
+  }
+
+  async function submitNoteLock(event) {
+    event.preventDefault();
+    if (!noteLockRequest) return;
+    const { mode, taskId } = noteLockRequest;
+    const index = tasks.findIndex((task) => task.id === taskId);
+    if (index < 0) { closeNoteLockDialog(); return; }
+    const password = elements.noteLockPassword.value.normalize("NFKC");
+    if (password.length < 8) { elements.noteLockFeedback.textContent = "專屬密碼至少需要8個字元，建議使用12字以上密碼句。"; return; }
+    if (mode === "setup" && password !== elements.noteLockConfirm.value.normalize("NFKC")) { elements.noteLockFeedback.textContent = "兩次輸入的專屬密碼不一致。"; return; }
+    const failure = noteLockFailures.get(taskId);
+    if (mode === "unlock" && failure?.blockedUntil > Date.now()) { elements.noteLockFeedback.textContent = `嘗試次數過多，請在 ${Math.ceil((failure.blockedUntil - Date.now()) / 1000)} 秒後再試。`; return; }
+    elements.noteLockSubmit.disabled = true;
+    elements.noteLockFeedback.textContent = mode === "setup" ? "正在加密內容……" : "正在驗證並解密……";
+    try {
+      if (mode === "setup") {
+        const result = await encryptNoteContent(taskContent(tasks[index]), password);
+        const previous = tasks[index];
+        tasks[index] = { ...previous, content: "", lock: result.lock, updatedAt: nowIso() };
+        unlockedNotes.delete(taskId);
+        if (!saveTasks()) { tasks[index] = previous; return; }
+        closeNoteLockDialog(); renderAll(); announce("特殊備忘錄已加密並鎖定");
+      } else {
+        const lock = tasks[index].lock;
+        if (!lock) { closeNoteLockDialog(); return; }
+        try {
+          const result = await decryptNoteContent(lock, password);
+          if (!result.content || result.content.length > MAX_NOTE_LENGTH) throw new Error("解密內容不正確");
+          unlockedNotes.set(taskId, result);
+          noteLockFailures.delete(taskId);
+          closeNoteLockDialog(); renderAll(); announce("特殊備忘錄已在本次頁面解鎖");
+        } catch (_error) {
+          const failures = (failure?.failures || 0) + 1;
+          const blockedUntil = failures >= 5 ? Date.now() + 30000 : 0;
+          noteLockFailures.set(taskId, { failures: blockedUntil ? 0 : failures, blockedUntil });
+          elements.noteLockFeedback.textContent = blockedUntil ? "密碼不正確，已暫停30秒。" : `密碼不正確，已失敗 ${failures} 次。`;
+          elements.noteLockPassword.select();
+        }
+      }
+    } catch (error) {
+      console.error("特殊備忘錄鎖定操作失敗：", error);
+      elements.noteLockFeedback.textContent = "加密功能無法完成，資料沒有變更。";
+    } finally { elements.noteLockSubmit.disabled = false; }
+  }
+
+  function relockNote(taskId) {
+    unlockedNotes.delete(taskId);
+    renderAll();
+    announce("特殊備忘錄已重新鎖定，解密內容已從頁面記憶體移除");
+  }
+
+  function removeNoteLock(taskId) {
+    const index = tasks.findIndex((task) => task.id === taskId);
+    const unlocked = unlockedNotes.get(taskId);
+    if (index < 0 || !tasks[index].lock || !unlocked) return;
+    if (!window.confirm("確定移除這則備忘錄的專屬密碼？\n\n移除後，內容會恢復成未加密的本機資料。")) return;
+    const previous = tasks[index];
+    tasks[index] = { ...previous, content: unlocked.content, lock: null, updatedAt: nowIso() };
+    unlockedNotes.delete(taskId);
+    if (!saveTasks()) { tasks[index] = previous; unlockedNotes.set(taskId, unlocked); return; }
+    renderAll();
+    announce("已移除特殊備忘錄密碼，內容恢復為未加密本機資料");
+  }
+
   function openEditor(card, task) {
+    if (task.lock && !isNoteUnlocked(task)) { alert("請先解鎖這則特殊備忘錄，才能編輯。"); return; }
     if (card.querySelector(".edit-panel")) return;
     const panel = document.createElement("div");
     panel.className = "edit-panel";
     const textarea = document.createElement("textarea");
     textarea.maxLength = MAX_NOTE_LENGTH;
-    textarea.value = task.content;
+    textarea.value = taskContent(task);
     textarea.setAttribute("aria-label", "編輯備忘錄內容");
 
     const options = document.createElement("div");
@@ -464,7 +640,7 @@ window.addEventListener("DOMContentLoaded", () => {
     textarea.focus();
 
     cancel.addEventListener("click", () => panel.remove());
-    save.addEventListener("click", () => {
+    save.addEventListener("click", async () => {
       const newContent = textarea.value.trim();
       if (!newContent) {
         alert("備忘錄內容不能是空白。");
@@ -475,9 +651,25 @@ window.addEventListener("DOMContentLoaded", () => {
       const index = tasks.findIndex((item) => item.id === task.id);
       if (index < 0) return;
       const previous = { ...tasks[index] };
-      tasks[index] = { ...tasks[index], content: newContent, category: category.value, urgent: urgency.value === "true", important: importance.value === "true", updatedAt: nowIso() };
+      const previousUnlocked = unlockedNotes.get(task.id);
+      save.disabled = true;
+      let nextLock = tasks[index].lock;
+      try {
+        if (nextLock) {
+          const unlocked = unlockedNotes.get(task.id);
+          if (!unlocked) { alert("解鎖狀態已失效，請重新解鎖後再編輯。"); return; }
+          nextLock = await encryptNoteWithKey(newContent, unlocked.key, nextLock.salt, nextLock.iterations);
+          unlockedNotes.set(task.id, { ...unlocked, content: newContent });
+        }
+      } catch (error) {
+        console.error("特殊備忘錄重新加密失敗：", error);
+        alert("無法重新加密，這次修改沒有儲存。");
+        return;
+      } finally { save.disabled = false; }
+      tasks[index] = { ...tasks[index], content: nextLock ? "" : newContent, lock: nextLock, category: category.value, urgent: urgency.value === "true", important: importance.value === "true", updatedAt: nowIso() };
       if (!saveTasks()) {
         tasks[index] = previous;
+        if (previousUnlocked) unlockedNotes.set(task.id, previousUnlocked);
         return;
       }
       renderAll();
@@ -485,9 +677,22 @@ window.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // 特性：釘選只調整顯示順序，不改變內容、分類、日期或四象限。
+  // 例如：每天都要確認的事項可固定在全部備忘錄與最近新增的前方。
+  function togglePinned(id) {
+    const index = tasks.findIndex((task) => task.id === id);
+    if (index < 0) return;
+    const previous = tasks[index];
+    tasks[index] = { ...previous, pinned: !previous.pinned, updatedAt: nowIso() };
+    if (!saveTasks()) { tasks[index] = previous; return; }
+    renderAll();
+    announce(tasks[index].pinned ? "備忘錄已釘選到清單前方" : "已取消釘選");
+  }
+
   function toggleCompleted(id, completed) {
     const index = tasks.findIndex((task) => task.id === id);
     if (index < 0) return;
+    if (tasks[index].lock && !isNoteUnlocked(tasks[index])) { alert("請先解鎖這則特殊備忘錄，才能變更完成狀態。"); renderAll(); return; }
     const previous = { ...tasks[index] };
     const timestamp = nowIso();
     tasks[index] = { ...tasks[index], completed, completedAt: completed ? timestamp : null, updatedAt: timestamp };
@@ -503,6 +708,7 @@ window.addEventListener("DOMContentLoaded", () => {
   function deleteTask(id) {
     const index = tasks.findIndex((task) => task.id === id);
     if (index < 0) return;
+    if (tasks[index].lock && !isNoteUnlocked(tasks[index])) { alert("請先解鎖這則特殊備忘錄，才能刪除。"); return; }
     const removed = tasks[index];
     tasks.splice(index, 1);
     if (!saveTasks()) {
@@ -510,6 +716,7 @@ window.addEventListener("DOMContentLoaded", () => {
       return;
     }
     deletedSnapshot = { task: removed, index };
+    unlockedNotes.delete(id);
     showUndoToast();
     renderAll();
     announce("備忘錄已刪除，可按復原還原");
@@ -554,6 +761,33 @@ window.addEventListener("DOMContentLoaded", () => {
     });
     elements.categoryFilter.value = [...elements.categoryFilter.options].some((option) => option.value === previousFilter) ? previousFilter : "all";
     elements.category.value = [...elements.category.options].some((option) => option.value === previousEntry) ? previousEntry : (categories[0]?.name || "其他");
+    const previousBatchTarget = elements.batchTargetCategory.value;
+    elements.batchTargetCategory.replaceChildren(...categories.map((category) => new Option(category.name, category.name)));
+    elements.batchTargetCategory.value = categories.some((category) => category.name === previousBatchTarget) ? previousBatchTarget : (categories[0]?.name || "");
+    updateCategoryMoveControls();
+    updateBatchCategoryToolbar();
+  }
+
+  function updateCategoryMoveControls() {
+    const previousSource = elements.categoryMoveSource.value;
+    const previousTarget = elements.categoryMoveTarget.value;
+    elements.categoryMoveSource.replaceChildren(...categories.map((category) => new Option(category.name, category.name)));
+    const source = categories.some((category) => category.name === previousSource) ? previousSource : (categories[0]?.name || "");
+    elements.categoryMoveSource.value = source;
+    const targets = categories.filter((category) => category.name !== source);
+    elements.categoryMoveTarget.replaceChildren(...targets.map((category) => new Option(category.name, category.name)));
+    elements.categoryMoveTarget.value = targets.some((category) => category.name === previousTarget) ? previousTarget : (targets[0]?.name || "");
+    const usage = tasks.filter((task) => task.category === source).length;
+    elements.categoryMoveCount.textContent = source ? `「${source}」目前有 ${usage} 則備忘錄` : "目前沒有分類";
+    elements.categoryMoveForm.querySelector("button[type='submit']").disabled = !usage || !targets.length;
+  }
+
+  function updateBatchCategoryToolbar() {
+    [...selectedTaskIds].forEach((id) => { if (!tasks.some((task) => task.id === id)) selectedTaskIds.delete(id); });
+    elements.batchCategoryToolbar.hidden = !batchCategoryMode;
+    elements.batchCategoryStart.hidden = batchCategoryMode;
+    elements.batchSelectedCount.textContent = `已選取 ${selectedTaskIds.size} 則`;
+    elements.batchCategoryMove.disabled = !selectedTaskIds.size || !categories.length;
   }
 
   function renderCategoryManager() {
@@ -569,7 +803,7 @@ window.addEventListener("DOMContentLoaded", () => {
       name.textContent = category.name;
       const usage = document.createElement("small");
       const usageCount = tasks.filter((task) => task.category === category.name).length;
-      usage.textContent = `${category.custom ? "自訂" : "預設"}分類｜${usageCount} 則`;
+      usage.textContent = `目前使用 ${usageCount} 則`;
       identity.append(dot, name, usage);
 
       const controls = document.createElement("div");
@@ -579,14 +813,14 @@ window.addEventListener("DOMContentLoaded", () => {
       CATEGORY_COLORS.forEach((value) => color.add(new Option(CATEGORY_COLOR_LABELS[value], value, false, value === category.color)));
       color.addEventListener("change", () => updateCategoryColor(category.name, color.value));
       controls.append(color);
-      if (category.custom) {
-        const remove = document.createElement("button");
-        remove.type = "button";
-        remove.className = "category-delete-button";
-        remove.textContent = "刪除";
-        remove.addEventListener("click", () => deleteCategory(category.name));
-        controls.append(remove);
-      }
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "category-delete-button";
+      remove.textContent = "刪除";
+      remove.disabled = Boolean(usageCount) || categories.length <= 1;
+      remove.title = usageCount ? `仍有${usageCount}則備忘錄使用，請先搬移分類` : categories.length <= 1 ? "至少要保留一個分類" : `刪除「${category.name}」`;
+      remove.addEventListener("click", () => deleteCategory(category.name));
+      controls.append(remove);
       row.append(identity, controls);
       elements.noteCategoryList.append(row);
     });
@@ -622,8 +856,9 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 
   function deleteCategory(name) {
-    const index = categories.findIndex((item) => item.name === name && item.custom);
+    const index = categories.findIndex((item) => item.name === name);
     if (index < 0) return;
+    if (categories.length <= 1) { alert("至少要保留一個分類，請先新增另一個分類。"); return; }
     const usage = tasks.filter((task) => task.category === name).length;
     if (usage) { alert(`「${name}」仍有${usage}則備忘錄使用，請先修改那些備忘錄的分類。`); return; }
     if (!window.confirm(`確定刪除「${name}」分類？`)) return;
@@ -633,12 +868,69 @@ window.addEventListener("DOMContentLoaded", () => {
     announce(`已刪除「${name}」分類`);
   }
 
+  // 特性：一次搬移原分類內的所有備忘錄，其餘欄位完全保留。
+  // 例如：把「舊專案」全部搬到「已封存」，再刪除未使用的舊分類。
+  function moveWholeCategory(event) {
+    event.preventDefault();
+    const source = elements.categoryMoveSource.value;
+    const target = elements.categoryMoveTarget.value;
+    const affected = tasks.filter((task) => task.category === source);
+    if (!source || !target || source === target || !affected.length) return;
+    const lockedCount = affected.filter((task) => task.lock && !isNoteUnlocked(task)).length;
+    if (lockedCount) { alert(`「${source}」中有 ${lockedCount} 則特殊備忘錄尚未解鎖。請先解鎖，或改用批次模式選取其他項目。`); return; }
+    if (!window.confirm(`確定把「${source}」的 ${affected.length} 則備忘錄全部搬移到「${target}」？\n\n內容、完成狀態、四象限與日期都不會改變。`)) return;
+    const previous = tasks;
+    const timestamp = nowIso();
+    tasks = tasks.map((task) => task.category === source ? { ...task, category: target, updatedAt: timestamp } : task);
+    if (!saveTasks()) { tasks = previous; return; }
+    renderAll();
+    announce(`已把 ${affected.length} 則備忘錄從「${source}」搬移到「${target}」`);
+  }
+
+  // 特性：批次模式可只勾選指定備忘錄，不會影響同分類中未選取的項目。
+  // 例如：搜尋「續保」後選取其中三則，再統一搬到新的自訂分類。
+  function startBatchCategoryMove() {
+    batchCategoryMode = true;
+    selectedTaskIds.clear();
+    renderAll();
+    announce("批次搬移模式已開啟，請點選要搬移的備忘錄");
+  }
+
+  function cancelBatchCategoryMove() {
+    batchCategoryMode = false;
+    selectedTaskIds.clear();
+    renderAll();
+    announce("已離開批次搬移模式");
+  }
+
+  function selectVisibleTasksForMove() {
+    filteredTasks().filter(isNoteUnlocked).forEach((task) => selectedTaskIds.add(task.id));
+    renderAll();
+    announce(`已選取目前篩選結果，共 ${selectedTaskIds.size} 則`);
+  }
+
+  function moveSelectedTasks() {
+    const target = elements.batchTargetCategory.value;
+    const selected = tasks.filter((task) => selectedTaskIds.has(task.id));
+    if (!target || !selected.length) return;
+    if (selected.some((task) => task.lock && !isNoteUnlocked(task))) { alert("選取項目包含尚未解鎖的特殊備忘錄，請先解鎖。"); return; }
+    if (!window.confirm(`確定把選取的 ${selected.length} 則備忘錄搬移到「${target}」？\n\n內容、完成狀態、四象限與日期都不會改變。`)) return;
+    const previous = tasks;
+    const timestamp = nowIso();
+    tasks = tasks.map((task) => selectedTaskIds.has(task.id) ? { ...task, category: target, updatedAt: timestamp } : task);
+    if (!saveTasks()) { tasks = previous; return; }
+    batchCategoryMode = false;
+    selectedTaskIds.clear();
+    renderAll();
+    announce(`已把 ${selected.length} 則備忘錄搬移到「${target}」`);
+  }
+
   function filteredTasks() {
     const query = elements.search.value.trim().toLocaleLowerCase("zh-TW");
     const category = elements.categoryFilter.value;
     const status = elements.statusFilter.value;
     const sorted = tasks.filter((task) => {
-      const matchesQuery = !query || `${task.content} ${task.category}`.toLocaleLowerCase("zh-TW").includes(query);
+      const matchesQuery = !query || `${taskContent(task)} ${task.category}`.toLocaleLowerCase("zh-TW").includes(query);
       const matchesCategory = category === "all" || task.category === category;
       const matchesStatus = status === "all" || (status === "completed" ? task.completed : !task.completed);
       return matchesQuery && matchesCategory && matchesStatus;
@@ -646,6 +938,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
     const mode = elements.sortFilter.value;
     sorted.sort((a, b) => {
+      if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
       if (mode === "oldest") return Date.parse(a.createdAt) - Date.parse(b.createdAt);
       if (mode === "updated") return Date.parse(b.updatedAt) - Date.parse(a.updatedAt);
       if (mode === "matrix") return QUADRANT_ORDER[quadrantKey(a)] - QUADRANT_ORDER[quadrantKey(b)] || Date.parse(b.createdAt) - Date.parse(a.createdAt);
@@ -666,15 +959,17 @@ window.addEventListener("DOMContentLoaded", () => {
   function createMatrixTask(task) {
     const categoryInfo = categoryDefinition(task.category);
     const item = document.createElement("article");
-    item.className = `matrix-task category-border-${categoryInfo.color}${task.completed ? " completed" : ""}`;
+    const locked = Boolean(task.lock) && !isNoteUnlocked(task);
+    item.className = `matrix-task category-border-${categoryInfo.color}${task.completed ? " completed" : ""}${locked ? " locked" : ""}`;
     const checkbox = document.createElement("input");
     checkbox.type = "checkbox";
     checkbox.checked = task.completed;
-    checkbox.setAttribute("aria-label", task.completed ? `將「${task.content}」改為待完成` : `將「${task.content}」標示為已完成`);
+    checkbox.disabled = locked;
+    checkbox.setAttribute("aria-label", task.completed ? `將「${taskDisplayContent(task)}」改為待完成` : `將「${taskDisplayContent(task)}」標示為已完成`);
     checkbox.addEventListener("change", () => toggleCompleted(task.id, checkbox.checked));
     const body = document.createElement("div");
     const content = document.createElement("p");
-    content.textContent = task.content;
+    content.textContent = taskDisplayContent(task);
     const meta = document.createElement("div");
     meta.className = "matrix-task-meta";
     meta.append(
@@ -740,9 +1035,9 @@ window.addEventListener("DOMContentLoaded", () => {
     if (!card) return;
     card.classList.add("chart-focus");
     card.scrollIntoView({ behavior: "smooth", block: "center" });
-    openEditor(card, task);
+    if (task.lock && !isNoteUnlocked(task)) openNoteLockDialog("unlock", task.id); else openEditor(card, task);
     window.setTimeout(() => card.classList.remove("chart-focus"), 2400);
-    announce(`已開啟「${task.content.slice(0, 30)}」的編輯區`);
+    announce(task.lock && !isNoteUnlocked(task) ? "此特殊備忘錄需要先解鎖" : `已開啟「${taskDisplayContent(task).slice(0, 30)}」的編輯區`);
   }
 
   function renderQuadrantMap(source) {
@@ -753,8 +1048,8 @@ window.addEventListener("DOMContentLoaded", () => {
       button.type = "button";
       button.className = `quadrant-point category-point-${categoryInfo.color}${point.task.completed ? " completed" : ""}`;
       button.style.left = `${point.x}%`; button.style.top = `${point.y}%`;
-      button.title = `${point.task.content}｜${QUADRANT_LABELS[point.quadrant]}｜點擊編輯`;
-      button.setAttribute("aria-label", `第${index + 1}點：${point.task.content}，${QUADRANT_LABELS[point.quadrant]}，點擊前往編輯`);
+      button.title = `${taskDisplayContent(point.task)}｜${QUADRANT_LABELS[point.quadrant]}｜點擊編輯`;
+      button.setAttribute("aria-label", `第${index + 1}點：${taskDisplayContent(point.task)}，${QUADRANT_LABELS[point.quadrant]}，點擊前往編輯`);
       button.addEventListener("click", () => openTaskFromQuadrantPoint(point.task.id));
       return button;
     });
@@ -789,17 +1084,17 @@ window.addEventListener("DOMContentLoaded", () => {
     elements.completedCount.textContent = String(tasks.filter((task) => task.completed).length);
     renderCompletionJourney();
 
-    const recent = [...tasks].sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt)).slice(0, 3);
+    const recent = [...tasks].sort((a, b) => Number(b.pinned) - Number(a.pinned) || Date.parse(b.createdAt) - Date.parse(a.createdAt)).slice(0, 3);
     renderList(elements.recentTasks, recent, "目前沒有備忘錄", "從上方輸入第一則內容開始使用。" );
 
     const visibleTasks = filteredTasks();
     elements.resultCount.textContent = `共 ${visibleTasks.length} 則`;
     renderList(elements.allTasks, visibleTasks, "找不到符合條件的內容", "請調整搜尋文字或篩選條件。" );
 
-    const completed = tasks.filter((task) => task.completed).sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt));
+    const completed = tasks.filter((task) => task.completed).sort((a, b) => Number(b.pinned) - Number(a.pinned) || Date.parse(b.updatedAt) - Date.parse(a.updatedAt));
     renderList(elements.completedTasks, completed, "還沒有已完成事項", "完成備忘錄後，紀錄會出現在這裡。" );
     renderMatrix();
-    const riskyCount = tasks.filter((task) => detectSensitiveData(task.content).length > 0).length;
+    const riskyCount = tasks.filter((task) => !task.lock && detectSensitiveData(task.content).length > 0).length;
     elements.securityStatus.textContent = riskyCount
       ? `現有資料中有 ${riskyCount} 則可能包含敏感內容，建議立即刪除或改寫。`
       : "目前沒有偵測到常見身分證、電話、Email、信用卡或敏感關鍵字。";
@@ -830,7 +1125,7 @@ window.addEventListener("DOMContentLoaded", () => {
     const task = {
       id: createId(), content, category: elements.category.value,
       urgent: elements.urgency.value === "true", important: elements.importance.value === "true",
-      completed: false, completedAt: null, createdAt: timestamp, updatedAt: timestamp
+      completed: false, completedAt: null, pinned: false, lock: null, createdAt: timestamp, updatedAt: timestamp
     };
     tasks.unshift(task);
     if (!saveTasks()) {
@@ -871,7 +1166,7 @@ window.addEventListener("DOMContentLoaded", () => {
   function exportText() {
     if (!window.confirm("匯出的文字檔可以直接閱讀。請勿放進公開 GitHub 或分享給他人。\n\n確定要下載嗎？")) return;
     const lines = tasks.map((task, index) => [
-      `${index + 1}. [${task.completed ? "已完成" : "待完成"}] ${task.content}`,
+      `${index + 1}. [${task.completed ? "已完成" : "待完成"}] ${readableExportContent(task)}`,
       `   分類：${task.category}｜${task.urgent ? "緊急" : "不緊急"}｜${task.important ? "重要" : "不重要"}｜${QUADRANT_LABELS[quadrantKey(task)]}｜建立：${formatDate(task.createdAt)}${task.completedAt ? `｜完成：${formatDate(task.completedAt)}` : ""}`
     ].join("\n"));
     const content = `EliNotebook 備忘錄\n匯出時間：${formatDate(nowIso())}\n總計：${tasks.length} 則\n\n${lines.join("\n\n")}`;
@@ -889,7 +1184,7 @@ window.addEventListener("DOMContentLoaded", () => {
   function exportCsv() {
     if (!confirmExport("CSV")) return;
     const header = ["內容", "分類", "分類顏色", "緊急性", "重要性", "四象限", "狀態", "建立時間", "修改時間", "完成時間"];
-    const rows = tasks.map((task) => [task.content, task.category, categoryDefinition(task.category).color, task.urgent ? "緊急" : "不緊急", task.important ? "重要" : "不重要", QUADRANT_LABELS[quadrantKey(task)], task.completed ? "已完成" : "待完成", task.createdAt, task.updatedAt, task.completedAt || ""]);
+    const rows = tasks.map((task) => [readableExportContent(task), task.category, categoryDefinition(task.category).color, task.urgent ? "緊急" : "不緊急", task.important ? "重要" : "不重要", QUADRANT_LABELS[quadrantKey(task)], task.completed ? "已完成" : "待完成", task.createdAt, task.updatedAt, task.completedAt || ""]);
     const content = `\uFEFF${[header, ...rows].map((row) => row.map(csvCell).join(",")).join("\r\n")}`;
     downloadFile(`EliNotebook-${fileDate()}.csv`, content, "text/csv;charset=utf-8");
     announce("CSV 已下載");
@@ -897,7 +1192,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
   function exportMarkdown() {
     if (!confirmExport("Markdown")) return;
-    const rows = tasks.map((task) => `- [${task.completed ? "x" : " "}] ${task.content.replace(/\n/g, " ")}  \n  分類：${task.category}｜${task.urgent ? "緊急" : "不緊急"}｜${task.important ? "重要" : "不重要"}｜${QUADRANT_LABELS[quadrantKey(task)]}｜建立：${formatDate(task.createdAt)}${task.completedAt ? `｜完成：${formatDate(task.completedAt)}` : ""}`);
+    const rows = tasks.map((task) => `- [${task.completed ? "x" : " "}] ${readableExportContent(task).replace(/\n/g, " ")}  \n  分類：${task.category}｜${task.urgent ? "緊急" : "不緊急"}｜${task.important ? "重要" : "不重要"}｜${QUADRANT_LABELS[quadrantKey(task)]}｜建立：${formatDate(task.createdAt)}${task.completedAt ? `｜完成：${formatDate(task.completedAt)}` : ""}`);
     const content = `# EliNotebook 備忘錄\n\n匯出時間：${formatDate(nowIso())}\n\n${rows.join("\n\n")}`;
     downloadFile(`EliNotebook-${fileDate()}.md`, content, "text/markdown;charset=utf-8");
     announce("Markdown 已下載");
@@ -911,7 +1206,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
   function exportHtml() {
     if (!confirmExport("HTML")) return;
-    const items = tasks.map((task) => `<li><strong>${task.completed ? "已完成" : "待完成"}</strong><p>${escapeHtml(task.content).replace(/\n/g, "<br>")}</p><small>${escapeHtml(task.category)}｜${task.urgent ? "緊急" : "不緊急"}｜${task.important ? "重要" : "不重要"}｜${escapeHtml(QUADRANT_LABELS[quadrantKey(task)])}｜建立：${escapeHtml(formatDate(task.createdAt))}${task.completedAt ? `｜完成：${escapeHtml(formatDate(task.completedAt))}` : ""}</small></li>`).join("");
+    const items = tasks.map((task) => `<li><strong>${task.completed ? "已完成" : "待完成"}</strong><p>${escapeHtml(readableExportContent(task)).replace(/\n/g, "<br>")}</p><small>${escapeHtml(task.category)}｜${task.urgent ? "緊急" : "不緊急"}｜${task.important ? "重要" : "不重要"}｜${escapeHtml(QUADRANT_LABELS[quadrantKey(task)])}｜建立：${escapeHtml(formatDate(task.createdAt))}${task.completedAt ? `｜完成：${escapeHtml(formatDate(task.completedAt))}` : ""}</small></li>`).join("");
     const content = `<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EliNotebook 匯出</title><style>body{max-width:800px;margin:40px auto;padding:0 20px;font-family:sans-serif;line-height:1.7}li{margin:0 0 24px}p{margin:4px 0}small{color:#666}</style></head><body><h1>EliNotebook 備忘錄</h1><p>匯出時間：${escapeHtml(formatDate(nowIso()))}</p><ol>${items}</ol></body></html>`;
     downloadFile(`EliNotebook-${fileDate()}.html`, content, "text/html;charset=utf-8");
     announce("HTML 已下載");
@@ -1025,8 +1320,8 @@ window.addEventListener("DOMContentLoaded", () => {
           importedCategories = Array.isArray(parsed?.categories) ? parsed.categories.map(normalizeCategory).filter(Boolean) : [];
         } else if (extension === "csv") normalized = parseCsv(text).slice(0, 2000);
         else normalized = parseTextNotes(text, extension);
-        const rejected = normalized.filter((task) => detectSensitiveData(task.content).length > 0);
-        const imported = normalized.filter((task) => detectSensitiveData(task.content).length === 0);
+        const rejected = normalized.filter((task) => !task.lock && detectSensitiveData(task.content).length > 0);
+        const imported = normalized.filter((task) => task.lock || detectSensitiveData(task.content).length === 0);
         if (rejected.length) alert(`為保護個資，已略過 ${rejected.length} 則疑似包含敏感資料的內容。`);
         if (!imported.length) {
           alert("檔案中沒有可安全匯入的備忘錄。");
@@ -1100,6 +1395,11 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 
   function showPrivacyScreen() {
+    const hadUnlockedNotes = unlockedNotes.size > 0;
+    unlockedNotes.clear();
+    closeNoteLockDialog();
+    window.EliSingleExport?.close();
+    if (hadUnlockedNotes) renderAll();
     elements.privacyScreen.hidden = false;
     document.body.style.overflow = "hidden";
     if (!document.hidden) elements.privacyReveal.focus();
@@ -1179,6 +1479,7 @@ window.addEventListener("DOMContentLoaded", () => {
     if (!confirmed) return;
     const previous = [...tasks];
     tasks = [];
+    unlockedNotes.clear();
     if (!saveTasks()) {
       tasks = previous;
       return;
@@ -1191,6 +1492,12 @@ window.addEventListener("DOMContentLoaded", () => {
   elements.goViewButtons.forEach((button) => button.addEventListener("click", () => changeView(button.dataset.goView)));
   elements.quickAddForm.addEventListener("submit", addTask);
   elements.noteCategoryForm.addEventListener("submit", addCategory);
+  elements.categoryMoveForm.addEventListener("submit", moveWholeCategory);
+  elements.categoryMoveSource.addEventListener("change", updateCategoryMoveControls);
+  elements.batchCategoryStart.addEventListener("click", startBatchCategoryMove);
+  elements.batchCategoryCancel.addEventListener("click", cancelBatchCategoryMove);
+  elements.batchSelectVisible.addEventListener("click", selectVisibleTasksForMove);
+  elements.batchCategoryMove.addEventListener("click", moveSelectedTasks);
   elements.input.addEventListener("input", () => {
     elements.characterCount.textContent = `${elements.input.value.length.toLocaleString("zh-TW")} / ${MAX_NOTE_LENGTH.toLocaleString("zh-TW")}`;
     const findings = detectSensitiveData(elements.input.value);
@@ -1216,10 +1523,14 @@ window.addEventListener("DOMContentLoaded", () => {
   elements.settingsThemeToggle.addEventListener("click", toggleTheme);
   elements.clearAll.addEventListener("click", clearAllTasks);
   elements.localStorageAccept.addEventListener("click", acceptLocalStorageNotice);
+  elements.noteLockForm.addEventListener("submit", submitNoteLock);
+  elements.noteLockCancel.addEventListener("click", closeNoteLockDialog);
+  elements.noteLockDialog.addEventListener("click", (event) => { if (event.target === elements.noteLockDialog) closeNoteLockDialog(); });
 
   // 其他分頁若修改同一份 localStorage，目前分頁會即時重新載入資料。
   window.addEventListener("storage", (event) => {
     if (event.key === STORAGE_KEY) {
+      unlockedNotes.clear();
       tasks = loadTasks();
       categories = loadCategories();
       renderAll();
@@ -1245,7 +1556,7 @@ window.addEventListener("DOMContentLoaded", () => {
   updateClock();
   // 每秒重新顯示當地時間；只讀取裝置時鐘，不會連接外部時間服務。
   window.setInterval(updateClock, 1000);
-  // 啟動時保存一次正規化結果，讓舊版優先程度與舊分類安全升級成3.3格式。
+  // 啟動時保存一次正規化結果，讓舊版優先程度、舊分類及新加密欄位安全升級成3.8格式。
   saveTasks();
   saveCategories();
   renderAll();
