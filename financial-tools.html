@@ -7,8 +7,7 @@
   <meta name="robots" content="index,follow">
   <meta name="format-detection" content="telephone=no">
   <meta name="color-scheme" content="light dark">
-  <meta name="theme-color" content="#f5f1e8" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#101615" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#e8e4dd">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -20,13 +19,17 @@
   <link rel="icon" type="image/png" sizes="192x192" href="./images/icons/icon-192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="./images/icons/icon-512.png">
   <link rel="apple-touch-icon" href="./images/icons/apple-touch-icon.png">
+  <script src="./javascript/theme.js"></script>
   <link rel="stylesheet" href="./style/financial-tools.css">
   <script src="./javascript/financial-tools.js" defer></script>
 </head>
 <body>
   <header class="site-header">
     <a class="brand" href="./index.html" aria-label="返回葉秀庭個人網站首頁"><span>E</span><div><strong>EliNotebook</strong><small>FINANCIAL TOOLKIT</small></div></a>
-    <a class="back-link" href="./index.html">返回首頁 ↗</a>
+    <div class="header-actions">
+      <button type="button" class="theme-toggle" data-theme-toggle aria-label="切換日夜模式">自動</button>
+      <a class="back-link" href="./index.html">返回首頁 ↗</a>
+    </div>
   </header>
 
   <main>
