@@ -1,6 +1,391 @@
-:root{--paper:#f5f1e8;--ink:#1b2925;--deep:#173d35;--green:#245c4c;--gold:#ad8b35;--line:#d7d0c2;--muted:#6f746f;--white:#fffdf8;--good:#1d6a4f;--warn:#9b4b37;--shadow:0 18px 55px rgba(28,42,36,.09)}
-*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--paper);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;line-height:1.7}a{color:inherit;text-decoration:none}button,input,textarea{font:inherit}button{cursor:pointer}.site-header{height:84px;padding:0 clamp(20px,5vw,72px);display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);background:rgba(245,241,232,.96);position:sticky;top:0;z-index:20;backdrop-filter:blur(12px)}.brand{display:flex;align-items:center;gap:12px}.brand>span{width:38px;height:38px;border:1px solid var(--gold);display:grid;place-items:center;font-family:Georgia,serif;font-size:24px;color:var(--deep)}.brand div{display:flex;flex-direction:column;line-height:1.2}.brand strong{font-family:Georgia,"Noto Serif TC",serif;font-size:18px}.brand small{font-size:10px;letter-spacing:.16em;color:var(--muted)}.back-link{font-size:13px;border-bottom:1px solid var(--gold)}.hero{min-height:430px;padding:80px clamp(20px,7vw,110px);background:var(--deep);color:var(--white);display:grid;grid-template-columns:minmax(0,1.5fr) minmax(260px,.75fr);gap:clamp(36px,7vw,110px);align-items:end}.eyebrow{font-size:11px;letter-spacing:.22em;color:#b89d53;font-weight:700;margin:0 0 12px}.hero h1,.tool-index h2,.formula-notes h2,.panel-heading h2{font-family:Georgia,"Noto Serif TC",serif;font-weight:500;margin:0}.hero h1{font-size:clamp(46px,8vw,92px);line-height:1.06}.hero>div>p:last-child{max-width:720px;color:#d0d5d1;font-size:17px}.hero aside{border-top:1px solid #8a7d56;padding-top:20px}.hero aside strong{font-size:19px}.hero aside p{color:#c7ccc8;font-size:14px}.tool-index{padding:58px clamp(20px,5vw,72px) 34px;display:flex;gap:30px;align-items:end;justify-content:space-between}.tool-index h2,.formula-notes h2{font-size:clamp(30px,4vw,48px)}.search{min-width:min(100%,320px);display:flex;flex-direction:column;gap:8px}.search span,.field>span{font-size:12px;font-weight:700;letter-spacing:.08em}.search input,.field input,.field textarea{width:100%;border:1px solid var(--line);background:var(--white);color:var(--ink);border-radius:0;padding:13px 14px;outline:none}.search input:focus,.field input:focus,.field textarea:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(36,92,76,.1)}.workspace-shell{display:grid;grid-template-columns:290px minmax(0,1fr);gap:28px;padding:0 clamp(20px,5vw,72px) 80px}.tool-sidebar{position:sticky;top:105px;align-self:start;max-height:calc(100vh - 125px);overflow-y:auto;overflow-x:hidden;padding-right:6px;scrollbar-width:thin;scrollbar-color:var(--gold) transparent}.tool-sidebar nav{display:grid;gap:8px;position:static}.tool-sidebar button{border:1px solid var(--line);background:transparent;color:var(--ink);padding:15px;text-align:left;display:grid;grid-template-columns:36px 1fr;gap:10px;transition:.18s}.tool-sidebar button:hover,.tool-sidebar button.active{background:var(--deep);color:var(--white);border-color:var(--deep)}.tool-sidebar button>span{color:var(--gold);font-family:Georgia,serif}.tool-sidebar button div{display:flex;flex-direction:column}.tool-sidebar button strong{font-size:14px}.tool-sidebar button small{font-size:11px;color:inherit;opacity:.68}.sidebar-note{font-size:12px;color:var(--muted);padding:16px 4px;margin:0;background:var(--paper);position:relative;z-index:1}.calculator-area{min-width:0;background:var(--white);border:1px solid var(--line);box-shadow:var(--shadow);padding:clamp(24px,4vw,54px)}.tool-tags{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:30px}.tool-tags span{border:1px solid #c9bb92;color:#6e5d2d;padding:5px 9px;font-size:11px}.panel-heading{display:flex;justify-content:space-between;gap:32px;border-bottom:1px solid var(--line);padding-bottom:25px;margin-bottom:30px}.panel-heading h2{font-size:clamp(30px,4vw,50px)}.panel-heading>p{max-width:460px;color:var(--muted);font-size:14px;margin:12px 0 0}.form-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-bottom:28px}.form-grid.compact{grid-template-columns:repeat(3,minmax(0,1fr))}.field{display:flex;flex-direction:column;gap:7px}.field.wide{grid-column:1/-1}.field textarea{resize:vertical;min-height:120px}.input-wrap{position:relative}.input-wrap input{padding-right:48px}.input-wrap b{position:absolute;right:13px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:12px}.field small{color:var(--muted);font-size:11px}.results-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:22px 0}.result-card{background:#f1ede3;border-top:3px solid var(--gold);padding:17px;min-height:118px;display:flex;flex-direction:column}.result-card>span{font-size:11px;letter-spacing:.05em;color:var(--muted)}.result-card strong{font-size:clamp(18px,2.2vw,26px);margin:auto 0 0;line-height:1.25;overflow-wrap:anywhere}.result-card small{font-size:10px;color:var(--muted);margin-top:6px}.result-card.good{border-color:var(--good)}.result-card.warn{border-color:var(--warn)}.split-input{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(240px,.75fr);gap:18px;margin:30px 0}.mini-results{display:grid;gap:10px}.mini-results .result-card{margin:0}.subsection{margin-top:38px;padding-top:25px;border-top:1px solid var(--line)}.subsection h3{font-family:Georgia,"Noto Serif TC",serif;font-size:24px;font-weight:500}.table-wrap{overflow:auto;border:1px solid var(--line);margin-top:22px}table{width:100%;border-collapse:collapse;min-width:620px}th,td{text-align:left;border-bottom:1px solid var(--line);padding:12px 14px;font-size:13px}th{background:#ebe5d8;font-size:11px;letter-spacing:.06em}.positive{color:var(--good)}.negative{color:var(--warn)}.formula-notes{padding:80px clamp(20px,7vw,110px);background:#e8e1d2}.formula-notes>div{display:grid;grid-template-columns:repeat(3,1fr);gap:30px;margin-top:34px}.formula-notes article{border-top:1px solid var(--gold);padding-top:18px}.formula-notes p{color:var(--muted);font-size:14px}footer{padding:32px clamp(20px,5vw,72px);background:#102d27;color:#ece9e0;display:flex;justify-content:space-between;gap:24px;align-items:center}footer p{font-size:12px;color:#bfc6c1;max-width:700px;text-align:right}
-@media(max-width:1050px){.workspace-shell{grid-template-columns:1fr}.tool-sidebar{position:static;max-height:none;overflow:visible;padding-right:0}.tool-sidebar nav{position:static;grid-template-columns:repeat(2,1fr)}.results-grid{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:760px){.site-header{height:72px;padding:0 18px}.brand small{display:none}.hero{grid-template-columns:1fr;padding:58px 20px;min-height:auto}.tool-index{padding:42px 20px 24px;display:grid}.workspace-shell{padding:0 20px 55px}.tool-sidebar nav{display:flex;overflow:auto;scroll-snap-type:x mandatory;padding-bottom:8px}.tool-sidebar button{min-width:230px;scroll-snap-align:start}.calculator-area{padding:24px 18px}.panel-heading{display:block}.form-grid,.form-grid.compact{grid-template-columns:1fr 1fr}.split-input{grid-template-columns:1fr}.formula-notes{padding:55px 20px}.formula-notes>div{grid-template-columns:1fr}footer{display:block}footer p{text-align:left}.back-link{font-size:12px}}
-@media(max-width:480px){.form-grid,.form-grid.compact,.results-grid{grid-template-columns:1fr}.hero h1{font-size:44px}.calculator-area{margin:0 -8px}.result-card{min-height:100px}.tool-index h2{font-size:32px}}
-@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
+/* =========================================================================
+   EliNotebook 金融工具中心 — Design tokens
+   行動優先(mobile-first) + Container Queries，確保「任何版面」都能正確排版
+   ========================================================================= */
+:root{
+  /* 品牌固定色（Header / Hero / Footer 這類固定深綠底，不隨主題切換） */
+  --brand-deep:#173d35;
+  --brand-cream:#fffdf8;
+  --brand-gold:#ad8b35;
+
+  /* 可隨主題切換的介面色 */
+  --paper:#f5f1e8;
+  --ink:#1b2925;
+  --green:#245c4c;
+  --gold:#ad8b35;
+  --line:#d7d0c2;
+  --muted:#6f746f;
+  --surface:#fffdf8;      /* 卡片／輸入框底色 */
+  --surface-alt:#f1ede3;  /* 次要卡片底色（result-card） */
+  --thead-bg:#ebe5d8;
+  --good:#1d6a4f;
+  --warn:#9b4b37;
+  --shadow:0 18px 55px rgba(28,42,36,.09);
+
+  /* 安全區域（瀏海 / Home Indicator），viewport-fit=cover 才會生效 */
+  --safe-t:env(safe-area-inset-top,0px);
+  --safe-b:env(safe-area-inset-bottom,0px);
+  --safe-l:env(safe-area-inset-left,0px);
+  --safe-r:env(safe-area-inset-right,0px);
+
+  color-scheme:light;
+}
+
+@media (prefers-color-scheme:dark){
+  :root{
+    --paper:#101615;
+    --ink:#eae7dd;
+    --green:#4fa088;
+    --gold:#dab968;
+    --line:#313a35;
+    --muted:#9aa39c;
+    --surface:#182220;
+    --surface-alt:#1d2724;
+    --thead-bg:#212b27;
+    --good:#41b087;
+    --warn:#e08b6c;
+    --shadow:0 18px 55px rgba(0,0,0,.5);
+    color-scheme:dark;
+  }
+}
+
+/* =========================================================================
+   Reset & 基礎排版
+   ========================================================================= */
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+  font-size:16px;
+  line-height:1.7;
+  -webkit-tap-highlight-color:transparent;
+  overflow-x:hidden;
+}
+a{color:inherit;text-decoration:none}
+button,input,textarea{font:inherit}
+button{cursor:pointer;-webkit-tap-highlight-color:transparent}
+img{max-width:100%;display:block}
+
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px;border-radius:2px}
+::selection{background:var(--gold);color:var(--brand-cream)}
+
+@media (hover:hover) and (pointer:fine){
+  .tool-sidebar button:hover,.back-link:hover{opacity:.9}
+}
+.back-link:active,.tool-sidebar button:active,.brand:active{transform:scale(.97)}
+
+/* =========================================================================
+   Header
+   ========================================================================= */
+.site-header{
+  min-height:72px;
+  padding:calc(10px + var(--safe-t)) max(16px,var(--safe-l)) 10px max(16px,var(--safe-l));
+  padding-right:max(16px,var(--safe-r));
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  border-bottom:1px solid var(--line);
+  background:var(--paper);
+  background:color-mix(in srgb, var(--paper) 96%, transparent);
+  position:sticky;
+  top:0;
+  z-index:20;
+  backdrop-filter:blur(12px);
+}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}
+.brand>span{
+  flex:none;width:36px;height:36px;border:1px solid var(--brand-gold);
+  display:grid;place-items:center;font-family:Georgia,serif;font-size:22px;color:var(--brand-deep);
+  background:var(--surface);
+}
+.brand div{display:flex;flex-direction:column;line-height:1.2;min-width:0}
+.brand strong{font-family:Georgia,"Noto Serif TC",serif;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brand small{font-size:10px;letter-spacing:.16em;color:var(--muted)}
+.back-link{
+  flex:none;font-size:13px;font-weight:600;border-bottom:1px solid var(--gold);
+  padding:10px 2px;white-space:nowrap;
+}
+
+@media (min-width:540px){
+  .site-header{min-height:84px;padding-left:max(clamp(20px,5vw,72px),var(--safe-l));padding-right:max(clamp(20px,5vw,72px),var(--safe-r))}
+  .brand{gap:12px}
+  .brand>span{width:38px;height:38px;font-size:24px}
+  .brand strong{font-size:18px}
+  .back-link{font-size:13px}
+}
+
+/* =========================================================================
+   Hero
+   ========================================================================= */
+.hero{
+  padding:clamp(40px,10vw,80px) max(20px,var(--safe-l)) clamp(40px,8vw,80px) max(20px,var(--safe-l));
+  background:var(--brand-deep);
+  color:var(--brand-cream);
+  display:grid;
+  grid-template-columns:1fr;
+  gap:clamp(28px,6vw,60px);
+}
+.eyebrow{font-size:11px;letter-spacing:.22em;color:#b89d53;font-weight:700;margin:0 0 12px}
+.hero h1,.tool-index h2,.formula-notes h2,.panel-heading h2{font-family:Georgia,"Noto Serif TC",serif;font-weight:500;margin:0}
+.hero h1{font-size:clamp(38px,11vw,92px);line-height:1.06}
+.hero>div>p:last-child{max-width:720px;color:#d0d5d1;font-size:clamp(15px,3.6vw,17px)}
+.hero aside{border-top:1px solid #8a7d56;padding-top:20px}
+.hero aside strong{font-size:18px}
+.hero aside p{color:#c7ccc8;font-size:14px}
+
+@media (min-width:860px){
+  .hero{grid-template-columns:minmax(0,1.5fr) minmax(260px,.75fr);align-items:end;padding-right:max(clamp(20px,7vw,110px),var(--safe-r));padding-left:max(clamp(20px,7vw,110px),var(--safe-l))}
+}
+
+/* =========================================================================
+   Tool Index / 搜尋
+   ========================================================================= */
+.tool-index{
+  padding:clamp(32px,7vw,58px) max(20px,var(--safe-l)) 24px max(20px,var(--safe-l));
+  display:grid;
+  gap:20px;
+}
+.tool-index h2,.formula-notes h2{font-size:clamp(28px,7vw,48px)}
+.search{width:100%;display:flex;flex-direction:column;gap:8px}
+.search span,.field>span{font-size:12px;font-weight:700;letter-spacing:.08em}
+.search input,.field input,.field textarea{
+  width:100%;border:1px solid var(--line);background:var(--surface);color:var(--ink);
+  border-radius:0;padding:13px 14px;outline:none;font-size:16px;
+}
+.search input:focus,.field input:focus,.field textarea:focus{
+  border-color:var(--green);box-shadow:0 0 0 3px rgba(36,92,76,.15);
+}
+
+@media (min-width:760px){
+  .tool-index{grid-auto-flow:column;align-items:end;justify-content:space-between;padding-right:max(clamp(20px,5vw,72px),var(--safe-r));padding-left:max(clamp(20px,5vw,72px),var(--safe-l))}
+  .search{min-width:min(100%,320px)}
+}
+
+/* =========================================================================
+   Workspace Shell（側邊分類 + 試算面板）
+   ========================================================================= */
+.workspace-shell{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:0;
+  padding:0 max(20px,var(--safe-l)) calc(48px + var(--safe-b));
+}
+.tool-sidebar{
+  position:relative;
+  padding:0 0 16px;
+}
+.tool-sidebar nav{
+  display:flex;
+  gap:8px;
+  overflow-x:auto;
+  overflow-y:hidden;
+  scroll-snap-type:x mandatory;
+  padding:2px 2px 10px;
+  -ms-overflow-style:none;
+  scrollbar-width:thin;
+  scrollbar-color:var(--gold) transparent;
+}
+.tool-sidebar nav::-webkit-scrollbar{height:5px}
+.tool-sidebar nav::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px}
+.tool-sidebar::after{
+  content:"";position:absolute;top:0;right:0;bottom:16px;width:36px;pointer-events:none;
+  background:linear-gradient(to right,transparent,var(--paper));
+}
+.tool-sidebar button{
+  flex:none;
+  min-width:200px;
+  min-height:52px;
+  scroll-snap-align:start;
+  border:1px solid var(--line);background:var(--surface);color:var(--ink);
+  padding:12px 14px;text-align:left;display:grid;grid-template-columns:32px 1fr;gap:10px;
+  align-items:center;transition:background .18s,color .18s,border-color .18s;
+}
+.tool-sidebar button:hover,.tool-sidebar button.active{background:var(--brand-deep);color:var(--brand-cream);border-color:var(--brand-deep)}
+.tool-sidebar button>span{color:var(--gold);font-family:Georgia,serif}
+.tool-sidebar button div{display:flex;flex-direction:column;min-width:0}
+.tool-sidebar button strong{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tool-sidebar button small{font-size:11px;color:inherit;opacity:.68}
+.sidebar-note{font-size:12px;color:var(--muted);padding:8px 4px 4px;margin:0}
+
+.calculator-area{
+  container-type:inline-size;
+  container-name:calc;
+  min-width:0;
+  background:var(--surface);
+  border:1px solid var(--line);
+  box-shadow:var(--shadow);
+  padding:clamp(20px,5vw,54px);
+}
+.tool-tags{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:24px}
+.tool-tags span{border:1px solid #c9bb92;color:#6e5d2d;padding:5px 9px;font-size:11px}
+@media (prefers-color-scheme:dark){.tool-tags span{color:var(--gold)}}
+
+.panel-heading{display:block;border-bottom:1px solid var(--line);padding-bottom:20px;margin-bottom:24px}
+.panel-heading h2{font-size:clamp(26px,7vw,50px)}
+.panel-heading>p{max-width:460px;color:var(--muted);font-size:14px;margin:12px 0 0}
+
+/* --- 中等寬度（平板／筆電）：側邊改為固定欄，並轉直式清單 --- */
+@media (min-width:860px){
+  .workspace-shell{grid-template-columns:260px minmax(0,1fr);gap:24px;padding:0 max(20px,var(--safe-l)) 70px max(20px,var(--safe-l))}
+  .tool-sidebar{position:sticky;top:calc(84px + 16px + var(--safe-t));align-self:start;max-height:calc(100vh - 116px - var(--safe-t));overflow-y:auto;overflow-x:hidden;padding-right:6px}
+  .tool-sidebar nav{display:grid;grid-template-columns:1fr;gap:8px;overflow:visible;padding:2px 2px 2px 0;scroll-snap-type:none}
+  .tool-sidebar::after{display:none}
+  .tool-sidebar button{min-width:0}
+  .sidebar-note{background:var(--paper);position:relative;z-index:1;padding:16px 4px}
+}
+@media (min-width:1180px){
+  .workspace-shell{grid-template-columns:290px minmax(0,1fr);gap:28px;padding-right:max(clamp(20px,5vw,72px),var(--safe-r));padding-left:max(clamp(20px,5vw,72px),var(--safe-l))}
+}
+@media (min-width:860px) and (max-width:1179px){
+  .tool-sidebar nav{grid-template-columns:repeat(2,1fr)}
+}
+
+/* container query：不論外層版面（有無側欄、嵌入寬度）都能正確排版 */
+@media (min-width:860px){
+  .panel-heading{display:flex;justify-content:space-between;gap:32px}
+}
+
+/* =========================================================================
+   表單欄位（用 Container Query 依「試算卡片自身寬度」自適應）
+   ========================================================================= */
+.form-grid{display:grid;grid-template-columns:1fr;gap:14px;margin-bottom:24px}
+.field{display:flex;flex-direction:column;gap:7px}
+.field.wide{grid-column:1/-1}
+.field textarea{resize:vertical;min-height:120px}
+.input-wrap{position:relative}
+.input-wrap input{padding-right:48px}
+.input-wrap b{position:absolute;right:13px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:12px}
+.field small{color:var(--muted);font-size:11px}
+
+.split-input{display:grid;grid-template-columns:1fr;gap:16px;margin:26px 0}
+.mini-results{display:grid;gap:10px}
+.mini-results .result-card{margin:0}
+
+.subsection{margin-top:32px;padding-top:22px;border-top:1px solid var(--line)}
+.subsection h3{font-family:Georgia,"Noto Serif TC",serif;font-size:22px;font-weight:500}
+
+@container calc (min-width:420px){
+  .form-grid,.form-grid.compact{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@container calc (min-width:680px){
+  .form-grid,.form-grid.compact{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .split-input{grid-template-columns:minmax(0,1.25fr) minmax(240px,.75fr)}
+}
+/* 不支援 Container Query 的環境：以視窗寬度做保底 fallback */
+@supports not (container-type:inline-size){
+  @media (min-width:640px){.form-grid,.form-grid.compact{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media (min-width:960px){.form-grid,.form-grid.compact{grid-template-columns:repeat(3,minmax(0,1fr))} .split-input{grid-template-columns:minmax(0,1.25fr) minmax(240px,.75fr)}}
+}
+
+/* =========================================================================
+   結果卡片
+   ========================================================================= */
+.results-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:20px 0}
+.result-card{background:var(--surface-alt);border-top:3px solid var(--gold);padding:15px;min-height:104px;display:flex;flex-direction:column}
+.result-card>span{font-size:11px;letter-spacing:.05em;color:var(--muted)}
+.result-card strong{font-size:clamp(17px,4.5vw,26px);margin:auto 0 0;line-height:1.25;overflow-wrap:anywhere}
+.result-card small{font-size:10px;color:var(--muted);margin-top:6px}
+.result-card.good{border-color:var(--good)}
+.result-card.warn{border-color:var(--warn)}
+
+@container calc (min-width:420px){
+  .results-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@container calc (min-width:680px){
+  .results-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+  .result-card{padding:17px;min-height:118px}
+}
+@supports not (container-type:inline-size){
+  @media (min-width:640px){.results-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+  @media (min-width:960px){.results-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px} .result-card{padding:17px;min-height:118px}}
+}
+
+/* =========================================================================
+   表格 → 手機自動轉為卡片列表（container query，依表格容器寬度切換）
+   ========================================================================= */
+.table-wrap{
+  container-type:inline-size;
+  container-name:tablewrap;
+  border:1px solid var(--line);
+  margin-top:20px;
+  background:var(--surface);
+}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;border-bottom:1px solid var(--line);padding:12px 14px;font-size:13px}
+th{background:var(--thead-bg);font-size:11px;letter-spacing:.06em}
+.positive{color:var(--good)}
+.negative{color:var(--warn)}
+
+/* 窄寬度（含手機）：卡片化，每列一張卡，欄名以 data-label 顯示 */
+@container tablewrap (max-width:619.98px){
+  .table-wrap{overflow:visible;border:none;background:transparent}
+  table{min-width:0}
+  thead{display:none}
+  table,tbody,tr,td{display:block;width:100%}
+  tr{border:1px solid var(--line);background:var(--surface);margin-bottom:10px;padding:6px 14px}
+  td{display:flex;align-items:baseline;justify-content:space-between;gap:14px;border:none;border-bottom:1px dashed var(--line);padding:10px 0;font-size:13px;text-align:right}
+  td:last-child{border-bottom:none}
+  td::before{content:attr(data-label);color:var(--muted);font-size:11px;font-weight:700;letter-spacing:.04em;text-align:left}
+}
+/* 寬度足夠（平板／桌機）：維持傳統表格，並允許橫向捲動作為保底 */
+@container tablewrap (min-width:620px){
+  .table-wrap{overflow:auto}
+  table{min-width:620px}
+}
+@supports not (container-type:inline-size){
+  .table-wrap{overflow:auto}
+  table{min-width:620px}
+  @media (max-width:619.98px){
+    .table-wrap{overflow:visible;border:none;background:transparent}
+    table{min-width:0}
+    thead{display:none}
+    table,tbody,tr,td{display:block;width:100%}
+    tr{border:1px solid var(--line);background:var(--surface);margin-bottom:10px;padding:6px 14px}
+    td{display:flex;align-items:baseline;justify-content:space-between;gap:14px;border:none;border-bottom:1px dashed var(--line);padding:10px 0;font-size:13px;text-align:right}
+    td:last-child{border-bottom:none}
+    td::before{content:attr(data-label);color:var(--muted);font-size:11px;font-weight:700;letter-spacing:.04em;text-align:left}
+  }
+}
+
+/* =========================================================================
+   試算範圍與限制
+   ========================================================================= */
+.formula-notes{padding:clamp(48px,10vw,80px) max(20px,var(--safe-l))}
+.formula-notes>div{display:grid;grid-template-columns:1fr;gap:24px;margin-top:28px}
+.formula-notes article{border-top:1px solid var(--gold);padding-top:16px}
+.formula-notes p{color:var(--muted);font-size:14px}
+@media (min-width:760px){
+  .formula-notes{padding-left:max(clamp(20px,7vw,110px),var(--safe-l));padding-right:max(clamp(20px,7vw,110px),var(--safe-r))}
+  .formula-notes>div{grid-template-columns:repeat(3,1fr);gap:30px;margin-top:34px}
+}
+
+/* =========================================================================
+   Footer
+   ========================================================================= */
+footer{
+  padding:24px max(20px,var(--safe-l)) calc(24px + var(--safe-b));
+  background:#102d27;color:#ece9e0;display:flex;flex-direction:column;gap:12px;
+}
+footer p{font-size:12px;color:#bfc6c1;max-width:700px}
+@media (min-width:760px){
+  footer{padding:32px max(clamp(20px,5vw,72px),var(--safe-r)) calc(32px + var(--safe-b)) max(clamp(20px,5vw,72px),var(--safe-l));flex-direction:row;justify-content:space-between;align-items:center}
+  footer p{text-align:right}
+}
+
+/* =========================================================================
+   動作／狀態過渡（切換工具面板時的淡入）
+   ========================================================================= */
+.calculator-area{transition:opacity .16s ease}
+.calculator-area.is-loading{opacity:.4}
+
+/* =========================================================================
+   無障礙／減少動態偏好
+   ========================================================================= */
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *{transition:none!important;animation:none!important}
+}
