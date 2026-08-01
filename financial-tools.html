@@ -41,8 +41,15 @@
     </section>
 
     <div class="workspace-shell">
-      <aside class="tool-sidebar"><nav id="tool-nav" aria-label="金融工具分類"></nav><p class="sidebar-note">試算結果僅供理解與比較，不構成投資、稅務、授信或保險建議。</p></aside>
-      <section id="calculator" class="calculator-area" aria-live="polite"></section>
+      <nav class="tool-rail at-start" aria-label="金融工具分類">
+        <button type="button" class="rail-arrow prev" data-dir="-1" aria-label="上一組工具" hidden>‹</button>
+        <div id="tool-nav" role="tablist" aria-label="金融工具分類" aria-orientation="horizontal"></div>
+        <button type="button" class="rail-arrow next" data-dir="1" aria-label="下一組工具" hidden>›</button>
+        <div class="rail-progress" aria-hidden="true"><span id="rail-bar"></span></div>
+        <p class="rail-hint" aria-hidden="true">左右滑動可切換工具</p>
+      </nav>
+      <section id="calculator" class="calculator-area" role="tabpanel" tabindex="-1" aria-live="polite"></section>
+      <p class="sidebar-note">試算結果僅供理解與比較，不構成投資、稅務、授信或保險建議。</p>
     </div>
 
     <section class="formula-notes">
@@ -50,6 +57,8 @@
       <div><article><strong>輸入單位</strong><p>百分率欄位請輸入 6 代表 6%；現金流中的負數代表投入或支出，正數代表回收或收入。</p></article><article><strong>結果不是承諾</strong><p>市場報酬、利率、匯率、稅負與保單條款都可能改變，實際數字應以契約及金融機構資料為準。</p></article><article><strong>隱私設計</strong><p>本頁沒有登入、資料庫、追蹤碼或傳輸功能；請勿把敏感個資貼到公開網站原始碼。</p></article></div>
     </section>
   </main>
+
+  <div id="result-peek" class="result-peek" aria-hidden="true"></div>
 
   <footer><strong>EliNotebook Financial Toolkit</strong><p>一般財務數學試算工具｜最後結果請向金融機構、保險公司、稅務或相關專業人員確認。</p></footer>
 </body>

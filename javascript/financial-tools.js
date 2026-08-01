@@ -63,26 +63,175 @@ cashflow:{html:()=>`${heading("CASH & ALLOCATION","現金流與資產配置","�
 };
 
 function escapeHtml(text){return String(text).replace(/[&<>"]/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[char])}
-let active="returns";
+
+/* ---------------------------------------------------------------------------
+   介面控制：可滑動工具輪播、面板滑動切換、手機結果浮動列、網址深連結
+   --------------------------------------------------------------------------- */
+const rail=document.querySelector(".tool-rail");
+const nav=$("#tool-nav");
+const panel=$("#calculator");
+const peek=$("#result-peek");
+const search=$("#tool-search");
+const reduceMotion=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const smooth=reduceMotion?"auto":"smooth";
+const isTool=id=>tools.some(tool=>tool.id===id);
+let active=isTool(decodeURIComponent(location.hash.slice(1)))?decodeURIComponent(location.hash.slice(1)):"returns";
+
+/* ---- 導覽列 ---- */
 function renderNav(query=""){
   const term=query.trim().toLowerCase();
-  $("#tool-nav").innerHTML=tools.filter(tool=>(tool.title+tool.subtitle+tool.tags.join(" ")).toLowerCase().includes(term)).map(tool=>`<button type="button" data-tool="${tool.id}" class="${tool.id===active?"active":""}" aria-current="${tool.id===active?"true":"false"}"><span>${tool.number}</span><div><strong>${tool.title}</strong><small>${tool.subtitle}</small></div></button>`).join("")||"<p>找不到符合的工具。</p>";
+  const list=tools.filter(tool=>(tool.title+tool.subtitle+tool.tags.join(" ")).toLowerCase().includes(term));
+  nav.innerHTML=list.map(tool=>`<button type="button" role="tab" data-tool="${tool.id}" class="${tool.id===active?"active":""}" aria-selected="${tool.id===active}" tabindex="${tool.id===active?0:-1}"><span>${tool.number}</span><div><strong>${tool.title}</strong><small>${tool.subtitle}</small></div></button>`).join("")||`<p class="rail-empty">找不到符合的工具。</p>`;
+  requestAnimationFrame(updateRail);
 }
-const reduceMotion=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* ---- 輪播狀態：漸層、箭頭、進度條 ---- */
+function updateRail(){
+  if(!rail)return;
+  const max=nav.scrollWidth-nav.clientWidth;
+  const overflow=max>4;
+  rail.classList.toggle("has-overflow",overflow);
+  rail.classList.toggle("at-start",nav.scrollLeft<=2);
+  rail.classList.toggle("at-end",!overflow||nav.scrollLeft>=max-2);
+  const bar=$("#rail-bar");
+  if(bar){
+    const ratio=Math.min(1,nav.clientWidth/Math.max(nav.scrollWidth,1));
+    const progress=max>0?nav.scrollLeft/max:0;
+    bar.style.width=`${ratio*100}%`;
+    bar.style.transform=`translateX(${ratio>0?progress*(100/ratio-100):0}%)`;
+  }
+  rail.querySelectorAll(".rail-arrow").forEach(button=>{
+    button.hidden=!overflow;
+    button.disabled=button.dataset.dir==="-1"?nav.scrollLeft<=2:nav.scrollLeft>=max-2;
+  });
+}
+function scrollActiveIntoView(){
+  const button=nav.querySelector("button.active");
+  if(!button)return;
+  const left=button.offsetLeft-(nav.clientWidth-button.offsetWidth)/2;
+  nav.scrollTo({left:Math.max(0,left),behavior:smooth});
+}
+
+/* ---- 面板 ---- */
+function recalc(){panels[active].calc();updatePeek()}
 function renderPanel(){
   const tool=tools.find(item=>item.id===active);
-  const area=$("#calculator");
   const paint=()=>{
-    area.innerHTML=`<div class="tool-tags">${tool.tags.map(tag=>`<span>${tag}</span>`).join("")}</div>${panels[active].html()}`;
-    area.oninput=panels[active].calc;
-    panels[active].calc();
-    requestAnimationFrame(()=>area.classList.remove("is-loading"));
+    panel.innerHTML=`<div class="tool-tags">${tool.tags.map(tag=>`<span>${tag}</span>`).join("")}</div>${panels[active].html()}`;
+    panel.setAttribute("aria-label",`${tool.number} ${tool.title}`);
+    panel.oninput=recalc;
+    recalc();
+    watchResults();
+    requestAnimationFrame(()=>panel.classList.remove("is-loading"));
   };
   if(reduceMotion){paint();return}
-  area.classList.add("is-loading");
+  panel.classList.add("is-loading");
   requestAnimationFrame(paint);
 }
-$("#tool-nav").addEventListener("click",event=>{const button=event.target.closest("button[data-tool]");if(!button)return;active=button.dataset.tool;renderNav($("#tool-search").value);renderPanel();if(window.innerWidth<860)$("#calculator").scrollIntoView({behavior:reduceMotion?"auto":"smooth",block:"start"})});
-$("#tool-search").addEventListener("input",event=>renderNav(event.target.value));
+function selectTool(id,{scrollToPanel=false}={}){
+  if(!isTool(id))return;
+  active=id;
+  try{history.replaceState(null,"",`#${id}`)}catch(error){/* file:// 環境忽略 */}
+  renderNav(search.value);
+  renderPanel();
+  scrollActiveIntoView();
+  if(scrollToPanel)panel.scrollIntoView({behavior:smooth,block:"start"});
+}
+function shiftTool(step,options){
+  const index=tools.findIndex(tool=>tool.id===active)+step;
+  if(index<0||index>=tools.length)return false;
+  selectTool(tools[index].id,options);
+  return true;
+}
+
+/* ---- 手機底部結果浮動列 ---- */
+let resultWatcher=null;
+function updatePeek(){
+  const card=panel.querySelector(".result-card");
+  if(!card||!peek)return;
+  peek.innerHTML=`<span>${escapeHtml(card.querySelector("span")?.textContent||"")}</span><strong>${escapeHtml(card.querySelector("strong")?.textContent||"")}</strong>`;
+}
+function watchResults(){
+  if(!peek)return;
+  if(resultWatcher){resultWatcher.disconnect();resultWatcher=null}
+  peek.classList.remove("show");
+  const grid=panel.querySelector(".results-grid,.mini-results");
+  if(!grid||!("IntersectionObserver" in window))return;
+  resultWatcher=new IntersectionObserver(entries=>{
+    peek.classList.toggle("show",!entries[0].isIntersecting&&window.innerWidth<860);
+  },{rootMargin:"-80px 0px -80px 0px"});
+  resultWatcher.observe(grid);
+}
+
+/* ---- 事件：點擊、拖曳、鍵盤、箭頭、滑動 ---- */
+let dragging=false,dragStartX=0,dragStartScroll=0,dragDistance=0;
+nav.addEventListener("pointerdown",event=>{
+  if(event.pointerType!=="mouse"||event.button!==0)return;
+  dragging=true;dragDistance=0;dragStartX=event.clientX;dragStartScroll=nav.scrollLeft;
+  rail?.classList.add("touched");
+});
+nav.addEventListener("pointermove",event=>{
+  if(!dragging)return;
+  const delta=event.clientX-dragStartX;
+  dragDistance=Math.max(dragDistance,Math.abs(delta));
+  if(dragDistance>5)rail?.classList.add("dragging");
+  nav.scrollLeft=dragStartScroll-delta;
+});
+["pointerup","pointercancel","pointerleave"].forEach(type=>nav.addEventListener(type,()=>{
+  if(!dragging)return;
+  dragging=false;
+  setTimeout(()=>rail?.classList.remove("dragging"),0);
+}));
+
+nav.addEventListener("click",event=>{
+  const button=event.target.closest("button[data-tool]");
+  if(!button||dragDistance>5)return;
+  selectTool(button.dataset.tool,{scrollToPanel:window.innerWidth<860});
+});
+nav.addEventListener("keydown",event=>{
+  const keys={ArrowLeft:-1,ArrowRight:1,Home:"first",End:"last"};
+  if(!(event.key in keys))return;
+  const buttons=[...nav.querySelectorAll("button[data-tool]")];
+  const current=buttons.findIndex(button=>button===document.activeElement);
+  if(current<0)return;
+  event.preventDefault();
+  const step=keys[event.key];
+  const target=step==="first"?0:step==="last"?buttons.length-1:Math.min(buttons.length-1,Math.max(0,current+step));
+  selectTool(buttons[target].dataset.tool);
+  nav.querySelector("button.active")?.focus();
+});
+nav.addEventListener("scroll",()=>{rail?.classList.add("touched");updateRail()},{passive:true});
+rail?.querySelectorAll(".rail-arrow").forEach(button=>button.addEventListener("click",()=>{
+  nav.scrollBy({left:Number(button.dataset.dir)*nav.clientWidth*.85,behavior:smooth});
+}));
+
+/* 面板左右滑動切換工具（僅觸控，避開輸入框與可捲動表格） */
+let swipeX=0,swipeY=0,swiping=false;
+panel.addEventListener("touchstart",event=>{
+  swiping=false;
+  if(event.touches.length!==1)return;
+  if(event.target.closest("input,textarea,select,.table-wrap"))return;
+  swiping=true;swipeX=event.touches[0].clientX;swipeY=event.touches[0].clientY;
+},{passive:true});
+panel.addEventListener("touchend",event=>{
+  if(!swiping)return;
+  swiping=false;
+  const touch=event.changedTouches[0];
+  const deltaX=touch.clientX-swipeX,deltaY=touch.clientY-swipeY;
+  if(Math.abs(deltaX)<70||Math.abs(deltaY)>55)return;
+  if(shiftTool(deltaX<0?1:-1))panel.scrollIntoView({behavior:smooth,block:"start"});
+},{passive:true});
+
+search.addEventListener("input",event=>renderNav(event.target.value));
+window.addEventListener("resize",()=>{
+  updateRail();
+  if(window.innerWidth>=860)peek?.classList.remove("show");
+},{passive:true});
+window.addEventListener("hashchange",()=>{
+  const id=decodeURIComponent(location.hash.slice(1));
+  if(isTool(id)&&id!==active)selectTool(id);
+});
+
 renderNav();
 renderPanel();
+scrollActiveIntoView();
