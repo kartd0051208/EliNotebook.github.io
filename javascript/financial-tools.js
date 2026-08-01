@@ -231,11 +231,72 @@ function drawChart(id,{labels=[],series=[],formatY=shortNum,xTitle="",empty="輸
   });
 
   const legend=usable.map(s=>`<span><i class="${s.cls||"s-a"}${s.kind==="bar"?" box":""}"></i>${escapeHtml(s.name)}</span>`).join("");
-  host.innerHTML=`<svg viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" role="img" aria-label="${escapeHtml(usable.map(s=>s.name).join("、"))}走勢圖">${parts.join("")}</svg>`
+  host.innerHTML=`<svg viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" role="img" tabindex="0" aria-label="${escapeHtml(usable.map(s=>s.name).join("、"))}走勢圖，可用左右方向鍵逐點查看數值">${parts.join("")}<g class="chart-cursor"></g></svg>`
     +(xTitle?`<p class="chart-x">${escapeHtml(xTitle)}</p>`:"")
+    +`<p class="chart-readout" aria-live="polite">點一下或滑過圖表可看該點數值</p>`
     +`<div class="chart-legend">${legend}</div>`;
+
+  host._chart={labels,series:usable,pad,plotH,band,width,formatY,centre,yOf};
+  bindChartCursor(host);
+  if(host._index!=null&&host._index<labels.length)highlightChart(host,host._index);
 }
 const variableHeight=count=>count>18?230:210;
+
+/* 圖表互動：滑過、點擊或用方向鍵，顯示該位置所有數列的數值 */
+function indexFromClientX(host,clientX){
+  const svg=host.querySelector("svg"),config=host._chart;
+  if(!svg||!config)return-1;
+  const box=svg.getBoundingClientRect();
+  if(!box.width)return-1;
+  const x=(clientX-box.left)*(config.width/box.width);
+  return Math.max(0,Math.min(config.labels.length-1,Math.round((x-config.pad.l)/config.band-.5)));
+}
+function highlightChart(host,index){
+  const config=host._chart,svg=host.querySelector("svg"),cursor=svg?.querySelector(".chart-cursor");
+  if(!config||!cursor||index<0||index>=config.labels.length)return;
+  host._index=index;
+  const x=config.centre(index);
+  const marks=config.series.map(s=>{
+    const value=s.values[index];
+    if(!Number.isFinite(value))return"";
+    return `<circle class="cursor-dot ${s.cls||"s-a"}" cx="${x.toFixed(1)}" cy="${config.yOf(value).toFixed(1)}" r="4.5"/>`;
+  }).join("");
+  cursor.innerHTML=`<line class="cursor-line" x1="${x.toFixed(1)}" y1="${config.pad.t}" x2="${x.toFixed(1)}" y2="${(config.pad.t+config.plotH).toFixed(1)}"/>${marks}`;
+  const values=config.series.map(s=>{
+    const value=s.values[index];
+    return Number.isFinite(value)?`<span><i class="${s.cls||"s-a"}"></i>${escapeHtml(s.name)} <b>${escapeHtml(config.formatY(value))}</b></span>`:"";
+  }).join("");
+  const readout=host.querySelector(".chart-readout");
+  if(readout)readout.innerHTML=`<strong>${escapeHtml(config.labels[index])}</strong>${values}`;
+}
+function clearChartCursor(host){
+  const cursor=host.querySelector(".chart-cursor");
+  if(cursor)cursor.innerHTML="";
+  const readout=host.querySelector(".chart-readout");
+  if(readout)readout.textContent="點一下或滑過圖表可看該點數值";
+  host._index=null;
+}
+function bindChartCursor(host){
+  if(host._bound)return;
+  host._bound=true;
+  host.addEventListener("pointermove",event=>{
+    if(event.pointerType==="mouse")highlightChart(host,indexFromClientX(host,event.clientX));
+  },{passive:true});
+  host.addEventListener("pointerdown",event=>highlightChart(host,indexFromClientX(host,event.clientX)),{passive:true});
+  host.addEventListener("pointerleave",()=>{if(host._index!=null)clearChartCursor(host)},{passive:true});
+  host.addEventListener("keydown",event=>{
+    const config=host._chart;
+    if(!config)return;
+    const keys={ArrowLeft:-1,ArrowRight:1,Home:"first",End:"last",Escape:"clear"};
+    if(!(event.key in keys))return;
+    event.preventDefault();
+    const move=keys[event.key];
+    if(move==="clear")return clearChartCursor(host);
+    const current=host._index==null?-1:host._index;
+    const next=move==="first"?0:move==="last"?config.labels.length-1:Math.max(0,Math.min(config.labels.length-1,(current<0?0:current)+move));
+    highlightChart(host,next);
+  });
+}
 
 /* =============================================================================
    版型元件：欄位一律留空，範例值只做灰色提示（placeholder）
@@ -248,7 +309,7 @@ const check=id=>`<div class="input-check" id="${id}" hidden></div>`;
 const note=(title,body)=>`<div class="field-note"><strong>${title}</strong><p>${body}</p></div>`;
 const set=(id,value)=>{const node=$("#"+id);if(node)node.textContent=value};
 const setFormula=(id,text)=>{const node=$("#"+id+"-formula");if(node)node.textContent=text||""};
-const heading=(eyebrow,title,description)=>`<div class="panel-heading"><div><p class="eyebrow">${eyebrow}</p><h2>${title}</h2></div><p>${description}</p></div><div class="panel-tools"><button type="button" class="formula-toggle" id="formula-toggle" aria-pressed="false">顯示計算式</button></div>${check("panel-check")}`;
+const heading=(eyebrow,title,description)=>`<div class="panel-heading"><div><p class="eyebrow">${eyebrow}</p><h2>${title}</h2></div><p>${description}</p></div><div class="panel-tools"><button type="button" class="formula-toggle" id="formula-toggle" aria-pressed="false">顯示計算式</button><button type="button" class="panel-action" data-export="copy">複製結果</button><button type="button" class="panel-action" data-export="csv">下載 CSV</button><span class="export-status" id="export-status" role="status" aria-live="polite"></span></div>${check("panel-check")}`;
 
 function setCheck(id,items){
   const node=$("#"+id);
@@ -367,7 +428,7 @@ calc:()=>{
   setCheck("panel-check",blankFieldNotice());
 }},
 
-policy:{html:()=>`${heading("POLICY VALUE","保單價值分析","依保單年度輸入保費與解約金；只做現金流試算，不代表商品建議。")}${note("這兩欄怎麼填","打開保單條款或建議書裡的「保單價值表」，會有一張逐年的表格。<br><b>每年度保費</b>：第 1 年到第 N 年各繳多少，依年度順序用逗號分隔。每年一樣多就重複填；躉繳（一次繳清）只填第一年、其餘填 0。<br><b>各年度末解約金</b>：同一張表上「解約金」或「保單價值準備金」欄位的數字，第 1 個對應第 1 年年末，以此類推。<br>兩欄的<b>筆數要一樣</b>，第 N 個數字要對到第 N 個保單年度，否則年度會對不齊。")}<div class="split-input">${area("p-premiums","每年度保費","100000,100000,100000,100000,100000,100000,100000,100000,100000,100000","第 1 年到第 N 年，依序用逗號分隔。")}${area("p-values","各年度末解約金／保單價值","20000,80000,160000,260000,380000,510000,650000,800000,960000,1130000","對應各年度末的解約金，筆數要與保費相同。")}</div>${check("p-check")}<div class="form-grid compact">${field("p-benefit","保障金額",3000000,"元","身故或全殘可領的保額，用來看保障是已繳保費的幾倍。")}</div><div class="results-grid">${result("p-paid","最新年度累積保費","到目前為止總共繳了多少")}${result("p-value","最新解約金","現在解約可以拿回多少")}${result("p-irr","最新年度解約金 IRR","若現在解約，這張保單的年化報酬率")}${result("p-leverage","保障／累積保費倍數","每繳 1 元保費換到幾元保障")}${result("p-break","解約金損益兩平年度","第幾年解約金才追上已繳保費")}</div><div class="table-wrap"><table><thead><tr><th>年度</th><th>累積保費</th><th>保單價值</th><th>年度 IRR</th></tr></thead><tbody id="p-table"></tbody></table></div>${chart("p-chart","累積保費 vs 保單價值")}`,
+policy:{html:()=>`${heading("POLICY VALUE","保單價值分析","依保單年度輸入保費與解約金；只做現金流試算，不代表商品建議。")}${note("這兩欄怎麼填","打開保單條款或建議書裡的「保單價值表」，會有一張逐年的表格。<br><b>每年度保費</b>：第 1 年到第 N 年各繳多少，依年度順序用逗號分隔。每年一樣多就重複填；躉繳（一次繳清）只填第一年、其餘填 0。<br><b>各年度末解約金</b>：同一張表上「解約金」或「保單價值準備金」欄位的數字，第 1 個對應第 1 年年末，以此類推。<br>兩欄的<b>筆數要一樣</b>，第 N 個數字要對到第 N 個保單年度，否則年度會對不齊。")}<div class="split-input">${area("p-premiums","每年度保費","100000,100000,100000,100000,100000,100000,100000,100000,100000,100000","第 1 年到第 N 年，依序用逗號分隔。")}${area("p-values","各年度末解約金／保單價值","20000,80000,160000,260000,380000,510000,650000,800000,960000,1130000","對應各年度末的解約金，筆數要與保費相同。")}</div>${check("p-check")}<div class="form-grid compact">${field("p-benefit","保障金額",3000000,"元","身故或全殘可領的保額，用來看保障是已繳保費的幾倍。")}<label class="field"><span>保費繳納時點</span><select id="p-timing"><option value="begin">年初繳（一般壽險，預設）</option><option value="end">年末繳</option></select><small>保險公司的建議書多以年初繳計算。選錯會讓 IRR 差好幾個百分點。</small></label></div><div class="results-grid">${result("p-paid","最新年度累積保費","到目前為止總共繳了多少")}${result("p-value","最新解約金","現在解約可以拿回多少")}${result("p-irr","最新年度解約金 IRR","若現在解約，這張保單的年化報酬率")}${result("p-leverage","保障／累積保費倍數","每繳 1 元保費換到幾元保障")}${result("p-break","解約金損益兩平年度","第幾年解約金才追上已繳保費")}</div><div class="table-wrap"><table><thead><tr><th>年度</th><th>累積保費</th><th>保單價值</th><th>年度 IRR</th></tr></thead><tbody id="p-table"></tbody></table></div>${chart("p-chart","累積保費 vs 保單價值")}`,
 calc:()=>{
   const premiumCheck=countBadEntries(raw("p-premiums")),valueCheck=countBadEntries(raw("p-values"));
   const premiums=parseCashflows(raw("p-premiums")).map(Math.abs),values=parseCashflows(raw("p-values"));
@@ -378,17 +439,27 @@ calc:()=>{
   if(values.length>premiums.length&&premiums.length)issues.push({level:"warn",text:"解約金筆數多於保費，超出的年度會缺少對應保費"});
   setCheck("p-check",issues);
 
+  /* 保費繳納時點會顯著影響 IRR：
+     年初繳（業界慣例）→ 第 1…N 年保費落在 t = 0…N−1，第 N 年末解約金落在 t = N
+     年末繳             → 保費落在 t = 1…N，解約金與最後一期保費同時點 */
+  const atBegin=(textOf("p-timing")||"begin")!=="end";
   const rows=values.map((value,index)=>{
-    const paid=premiums.slice(0,index+1).reduce((sum,x)=>sum+x,0);
-    const flows=[0,...premiums.slice(0,index+1).map(x=>-x)];
-    flows[flows.length-1]+=value;
+    const used=premiums.slice(0,index+1);
+    const paid=used.reduce((sum,x)=>sum+x,0);
+    let flows;
+    if(atBegin){
+      flows=[...used.map(x=>-x),value];
+    }else{
+      flows=[0,...used.map(x=>-x)];
+      flows[flows.length-1]+=value;
+    }
     return{year:index+1,value,paid,rate:irr(flows)};
   });
   const latest=rows.at(-1),breakeven=rows.find(x=>x.value>=x.paid)?.year;
   const leverage=latest?.paid?val("p-benefit")/latest.paid:Number.NaN;
   set("p-paid",money(latest?.paid));setFormula("p-paid",latest?`累積保費 = 第 1…${latest.year} 年保費相加`:"請先輸入保費");
   set("p-value",money(latest?.value));setFormula("p-value",latest?`第 ${latest.year} 年度末的解約金`:"請先輸入解約金");
-  set("p-irr",pct(latest?.rate));setFormula("p-irr",latest?`現金流 = 各年保費（負）＋第 ${latest.year} 年解約金（正），解 IRR`:"請先輸入保費與解約金");
+  set("p-irr",pct(latest?.rate));setFormula("p-irr",latest?`現金流：第 1…${latest.year} 年保費（負）落在 t = ${atBegin?`0…${latest.year-1}`:`1…${latest.year}`}，第 ${latest.year} 年末解約金（正）落在 t = ${latest.year}，解 Σ CF ÷ (1+r)^t = 0`:"請先輸入保費與解約金");
   const leverageValue=req(["p-benefit"],leverage);
   set("p-leverage",Number.isFinite(leverageValue)?`${num(leverageValue)} 倍`:DASH);setFormula("p-leverage",`倍數 = 保障金額 ÷ 累積保費 = ${g(val("p-benefit"),0)} ÷ ${g(latest?.paid,0)}`);
   set("p-break",breakeven?`第 ${breakeven} 年`:(rows.length?"輸入期間內尚未達成":DASH));setFormula("p-break","第一個「解約金 ≥ 累積保費」的年度");
@@ -786,6 +857,116 @@ panelEl.addEventListener("click",event=>{
   if(!event.target.closest("#formula-toggle"))return;
   showFormula=!showFormula;
   applyFormulaState();
+});
+
+/* -------- 匯出：複製為文字、下載 CSV（都在本機處理，不會送出任何資料）-------- */
+function collectPanelData(){
+  const tool=tools.find(item=>item.id===active);
+  const inputs=[...panelEl.querySelectorAll(".field")].map(node=>{
+    const control=node.querySelector("input,textarea,select");
+    if(!control)return null;
+    const label=node.querySelector("span")?.textContent||"";
+    const unit=node.querySelector(".input-wrap b")?.textContent||"";
+    const value=control.tagName==="SELECT"?(control.selectedOptions[0]?.textContent||""):control.value.trim();
+    return{label,unit,value,filled:value!=="",list:control.tagName==="TEXTAREA"};
+  }).filter(Boolean);
+  const results=[...panelEl.querySelectorAll(".result-card")].map(card=>({
+    label:card.querySelector("span")?.textContent||"",
+    value:card.querySelector("strong")?.textContent||"",
+    formula:card.querySelector(".formula")?.textContent||""
+  }));
+  const notices=[...panelEl.querySelectorAll(".input-check .chk")].map(node=>node.textContent.trim());
+  const tableNode=panelEl.querySelector(".table-wrap table");
+  const table=tableNode?{
+    head:[...tableNode.querySelectorAll("thead th")].map(th=>th.textContent),
+    body:[...tableNode.querySelectorAll("tbody tr")].map(tr=>[...tr.querySelectorAll("td")].map(td=>td.textContent))
+  }:null;
+  const stamp=new Date();
+  const time=`${stamp.getFullYear()}-${String(stamp.getMonth()+1).padStart(2,"0")}-${String(stamp.getDate()).padStart(2,"0")} ${String(stamp.getHours()).padStart(2,"0")}:${String(stamp.getMinutes()).padStart(2,"0")}`;
+  return{tool,inputs,results,notices,table,time};
+}
+function panelAsText(){
+  const {tool,inputs,results,notices,table,time}=collectPanelData();
+  const lines=[`${tool.number} ${tool.title}｜EliNotebook 金融工具中心`,`試算時間：${time}`,"","【輸入條件】"];
+  inputs.forEach(x=>{
+    if(x.filled&&x.list)return lines.push(`  ${x.label}：`,...x.value.split(/\n/).map(line=>`      ${line}`));
+    lines.push(`  ${x.label}：${x.filled?x.value+(x.unit||""):(x.list?"（未填）":"（未填，以 0 計算）")}`);
+  });
+  lines.push("","【試算結果】");
+  results.forEach(x=>{
+    lines.push(`  ${x.label}：${x.value}`);
+    if(x.formula)lines.push(`      算式：${x.formula}`);
+  });
+  if(table&&table.body.length){
+    lines.push("",`【${table.head.join("／")}】`);
+    table.body.forEach(row=>lines.push("  "+row.join("｜")));
+  }
+  if(notices.length){lines.push("","【提醒】");notices.forEach(x=>lines.push("  "+x))}
+  lines.push("","※ 一般財務數學試算，不構成投資、稅務、授信或保險建議；請以金融機構正式文件為準。");
+  return lines.join("\n");
+}
+function panelAsCsv(){
+  const {tool,inputs,results,notices,table,time}=collectPanelData();
+  const cell=value=>`"${String(value).replace(/"/g,'""')}"`;
+  const rows=[["項目","名稱","數值","單位／算式"]];
+  rows.push(["工具",`${tool.number} ${tool.title}`,"",""]);
+  rows.push(["試算時間",time,"",""]);
+  inputs.forEach(x=>rows.push(["輸入",x.label,x.filled?x.value.replace(/\n/g," ; "):"(未填)",x.unit]));
+  results.forEach(x=>rows.push(["結果",x.label,x.value,x.formula]));
+  if(table&&table.body.length){
+    rows.push([]);
+    rows.push(["明細",...table.head]);
+    table.body.forEach(row=>rows.push(["明細",...row]));
+  }
+  notices.forEach(x=>rows.push(["提醒",x,"",""]));
+  rows.push(["聲明","一般財務數學試算，不構成投資、稅務、授信或保險建議","",""]);
+  return "\uFEFF"+rows.map(row=>row.map(cell).join(",")).join("\r\n");
+}
+function exportStatus(message){
+  const node=$("#export-status");
+  if(!node)return;
+  node.textContent=message;
+  clearTimeout(exportStatus.timer);
+  exportStatus.timer=setTimeout(()=>{if($("#export-status"))$("#export-status").textContent=""},3200);
+}
+function copyText(text){
+  if(navigator.clipboard&&window.isSecureContext){
+    navigator.clipboard.writeText(text).then(()=>exportStatus("已複製到剪貼簿")).catch(()=>fallbackCopy(text));
+    return;
+  }
+  fallbackCopy(text);
+}
+function fallbackCopy(text){
+  try{
+    const box=document.createElement("textarea");
+    box.value=text;box.setAttribute("readonly","");
+    box.style.cssText="position:fixed;top:0;left:-9999px;opacity:0";
+    document.body.appendChild(box);box.select();
+    const ok=document.execCommand("copy");
+    document.body.removeChild(box);
+    exportStatus(ok?"已複製到剪貼簿":"複製失敗，請改用下載 CSV");
+  }catch(error){exportStatus("複製失敗，請改用下載 CSV")}
+}
+function downloadCsv(){
+  const {tool}=collectPanelData();
+  const stamp=new Date();
+  const name=`EliNotebook_${tool.number}_${tool.title}_${stamp.getFullYear()}${String(stamp.getMonth()+1).padStart(2,"0")}${String(stamp.getDate()).padStart(2,"0")}.csv`;
+  try{
+    const blob=new Blob([panelAsCsv()],{type:"text/csv;charset=utf-8"});
+    const url=URL.createObjectURL(blob);
+    const link=document.createElement("a");
+    link.href=url;link.download=name;
+    document.body.appendChild(link);link.click();
+    document.body.removeChild(link);
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+    exportStatus("已下載 CSV");
+  }catch(error){exportStatus("此瀏覽器不支援下載，請改用複製結果")}
+}
+panelEl.addEventListener("click",event=>{
+  const button=event.target.closest("[data-export]");
+  if(!button)return;
+  if(button.dataset.export==="copy")copyText(panelAsText());
+  else downloadCsv();
 });
 
 /* 面板左右滑動切換工具（僅觸控，避開輸入框與可捲動表格） */

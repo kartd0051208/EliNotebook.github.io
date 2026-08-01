@@ -146,11 +146,15 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .tool-index h2,.formula-notes h2{font-size:clamp(28px,7vw,48px)}
 .search{width:100%;display:flex;flex-direction:column;gap:8px}
 .search span,.field>span{font-size:12px;font-weight:700;letter-spacing:.08em}
-.search input,.field input,.field textarea{
+.search input,.field input,.field textarea,.field select{
   width:100%;border:1px solid var(--line);background:var(--surface);color:var(--ink);
   border-radius:0;padding:13px 14px;outline:none;font-size:16px;
 }
-.search input:focus,.field input:focus,.field textarea:focus{
+.field select{appearance:none;-webkit-appearance:none;min-height:50px;cursor:pointer;
+  background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);
+  background-position:calc(100% - 19px) calc(50% + 2px),calc(100% - 13px) calc(50% + 2px);
+  background-size:6px 6px,6px 6px;background-repeat:no-repeat;padding-right:38px}
+.search input:focus,.field input:focus,.field textarea:focus,.field select:focus{
   border-color:var(--green);box-shadow:0 0 0 3px rgba(36,92,76,.15);
 }
 @media (min-width:760px){
@@ -336,14 +340,21 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .input-check .chk.info b{background:var(--green);color:var(--brand-cream)}
 
 /* -------- 計算式 -------- */
-.panel-tools{display:flex;justify-content:flex-end;margin:-8px 0 18px}
-.formula-toggle{
+.panel-tools{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:8px;margin:-8px 0 18px}
+.formula-toggle,.panel-action{
   border:1px solid var(--line);background:var(--surface);color:var(--ink);
-  padding:9px 15px;font-size:12.5px;font-weight:600;min-height:40px;
+  padding:9px 15px;font-size:12.5px;font-weight:600;min-height:44px;
   transition:background .18s,color .18s,border-color .18s;
 }
 .formula-toggle[aria-pressed="true"]{background:var(--brand-deep);color:var(--brand-cream);border-color:var(--brand-deep)}
-@media (hover:hover) and (pointer:fine){ .formula-toggle:hover{border-color:var(--green)} }
+.panel-action:active{background:var(--surface-alt)}
+@media (hover:hover) and (pointer:fine){ .formula-toggle:hover,.panel-action:hover{border-color:var(--green)} }
+.export-status{font-size:12px;color:var(--good);min-height:1em;flex:none}
+@media (max-width:520px){
+  .panel-tools{justify-content:stretch}
+  .formula-toggle,.panel-action{flex:1 1 auto;text-align:center}
+  .export-status{flex:1 0 100%;text-align:right}
+}
 .result-card .formula{display:none;margin-top:9px;padding-top:8px;border-top:1px dashed var(--line);font-size:11px;line-height:1.55;color:var(--muted);overflow-wrap:anywhere}
 .calculator-area.show-formula .result-card .formula:not(:empty){display:block}
 
@@ -351,7 +362,21 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .chart-wrap{margin:26px 0 0;padding:14px 14px 10px;background:var(--surface-alt);border:1px solid var(--line)}
 .chart-wrap figcaption{font-size:12px;font-weight:700;letter-spacing:.05em;color:var(--muted);margin-bottom:10px}
 .chart-box{min-height:60px}
-.chart-box svg{width:100%;height:auto;display:block;max-width:100%}
+.chart-box svg{width:100%;height:auto;display:block;max-width:100%;cursor:crosshair}
+.chart-box svg:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.cursor-line{stroke:var(--ink);stroke-width:1;stroke-dasharray:3 3;opacity:.5}
+.cursor-dot{stroke:var(--surface-alt);stroke-width:2}
+.cursor-dot.s-a{fill:var(--green)}
+.cursor-dot.s-b{fill:var(--gold)}
+.cursor-dot.s-c{fill:var(--warn)}
+.chart-readout{margin:10px 0 0;font-size:12px;color:var(--muted);display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px;min-height:1.6em}
+.chart-readout strong{font-size:12.5px;color:var(--ink);font-weight:700}
+.chart-readout span{display:inline-flex;align-items:center;gap:6px}
+.chart-readout b{color:var(--ink);font-weight:700}
+.chart-readout i{display:inline-block;width:10px;height:10px;border-radius:2px}
+.chart-readout i.s-a{background:var(--green)}
+.chart-readout i.s-b{background:var(--gold)}
+.chart-readout i.s-c{background:var(--warn)}
 .chart-empty{margin:6px 0 10px;font-size:12.5px;color:var(--muted)}
 .chart-x{margin:6px 0 0;font-size:11px;color:var(--muted);text-align:center}
 .chart-grid{stroke:var(--line);stroke-width:1}

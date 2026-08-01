@@ -1,0 +1,29 @@
+{
+  "name": "葉秀庭｜保險經紀人・風險規劃顧問",
+  "short_name": "EliNotebook",
+  "description": "家庭保障規劃、既有保障內容整理、企業團體保險與理賠流程資訊協助，並提供金融試算工具。",
+  "start_url": "./",
+  "scope": "./",
+  "id": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "browser"],
+  "background_color": "#f5f1e8",
+  "theme_color": "#173d35",
+  "lang": "zh-Hant",
+  "dir": "ltr",
+  "categories": ["finance", "business", "productivity"],
+  "icons": [
+    { "src": "./images/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "./images/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "./images/icons/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    {
+      "name": "金融工具中心",
+      "short_name": "金融工具",
+      "description": "IRR、複利、保單價值、退休、貸款與資產配置試算",
+      "url": "./financial-tools.html",
+      "icons": [{ "src": "./images/icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

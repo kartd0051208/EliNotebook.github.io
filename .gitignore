@@ -1,1 +1,22 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# 壓縮與暫存
 *.zip
+*.tmp
+*.log
+
+# 編輯器
+.vscode/
+.idea/
+*.swp
+
+# 相依套件（本專案為純靜態網站，不應出現）
+node_modules/

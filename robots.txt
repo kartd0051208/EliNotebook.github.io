@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://kartd0051208.github.io/EliNotebook.github.io/sitemap.xml
