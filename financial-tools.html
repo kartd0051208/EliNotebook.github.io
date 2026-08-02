@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="金融工具">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; worker-src 'self'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
   <title>金融工具中心｜EliNotebook</title>
   <link rel="canonical" href="https://kartd0051208.github.io/EliNotebook.github.io/financial-tools.html">
   <link rel="manifest" href="./financial-tools-manifest.json">
@@ -23,8 +23,36 @@
   <link rel="stylesheet" href="./style/financial-tools.css">
   <script src="./javascript/financial-tools.js" defer></script>
   <noscript><style>.theme-toggle{display:none!important}</style></noscript>
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "EliNotebook 金融工具中心",
+  "url": "https://kartd0051208.github.io/EliNotebook.github.io/financial-tools.html",
+  "applicationCategory": "FinanceApplication",
+  "operatingSystem": "Web",
+  "browserRequirements": "需支援 JavaScript 的現代瀏覽器",
+  "inLanguage": "zh-Hant-TW",
+  "isAccessibleForFree": true,
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "TWD" },
+  "description": "IRR、XIRR、NPV、複利、保單價值、退休規劃、投資風險、貸款與分期、匯率稅後報酬與資產配置試算。所有計算在瀏覽器本機執行，不上傳任何資料。",
+  "featureList": [
+    "報酬與現金流：IRR、XIRR、NPV、CAGR、ROI",
+    "複利與投入規劃",
+    "保單價值分析與年度 IRR",
+    "年金與退休規劃",
+    "投資風險指標：標準差、夏普值、Beta、Alpha",
+    "貸款與分期試算",
+    "匯率與稅後報酬",
+    "現金流與資產配置"
+  ],
+  "author": { "@type": "Person", "name": "葉秀庭" },
+  "publisher": { "@type": "Person", "name": "葉秀庭" }
+}
+  </script>
 </head>
 <body>
+  <a class="skip-link" href="#calculator">跳至試算工具</a>
   <header class="site-header">
     <a class="brand" href="./index.html" aria-label="返回葉秀庭個人網站首頁"><span>E</span><div><strong>EliNotebook</strong><small>FINANCIAL TOOLKIT</small></div></a>
     <div class="header-actions">

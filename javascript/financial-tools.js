@@ -305,11 +305,33 @@ const field=(id,label,example,suffix="",hint="")=>`<label class="field"><span>${
 const area=(id,label,example,hint="")=>`<label class="field wide"><span>${label}</span><textarea id="${id}" rows="5" placeholder="${String(example).replace(/\n/g,"&#10;")}" autocomplete="off" spellcheck="false"></textarea>${hint?`<small>${hint}</small>`:""}</label>`;
 const result=(id,label,note="")=>`<article class="result-card"><span>${label}</span><strong id="${id}">${DASH}</strong>${note?`<small>${note}</small>`:""}<small class="formula" id="${id}-formula"></small></article>`;
 const check=id=>`<div class="input-check" id="${id}" hidden></div>`;
+/* 並排比較：左右兩欄輸入 + 差異表 */
+const compare=(title,intro,colA,colB,tableId,heads)=>
+`<div class="subsection"><h3>${title}</h3>${intro}
+<div class="compare-grid">
+  <section class="compare-col" aria-label="方案 A"><h4><span class="tag-a">A</span>方案 A</h4>${colA}</section>
+  <section class="compare-col" aria-label="方案 B"><h4><span class="tag-b">B</span>方案 B</h4>${colB}</section>
+</div>
+<div class="table-wrap"><table><thead><tr>${heads.map(h=>`<th>${h}</th>`).join("")}</tr></thead><tbody id="${tableId}"></tbody></table></div></div>`;
+/* 差異值：正負都標示顏色，並附上「哪個比較划算」的方向 */
+/* 差異欄。better 只在「方向明確」時才給判讀：
+   "lower"＝越低越好、"higher"＝越高越好、null＝這是取捨，不下結論。
+   例如貸款期數短總利息少但月付高，沒有客觀的好壞，就不標。 */
+const diffCell=(value,formatter,better=null)=>{
+  if(!Number.isFinite(value))return `<td data-label="差異（B − A）">${DASH}</td>`;
+  if(Math.abs(value)<1e-9)return `<td data-label="差異（B − A）">相同</td>`;
+  /* 正負號一定要標出來，否則「少付 41 萬」會被誤讀成「多付 41 萬」 */
+  const sign=value>0?"+":"−";
+  const text=`${sign}${formatter(value)}`;
+  if(!better)return `<td data-label="差異（B − A）">${text}</td>`;
+  const good=better==="lower"?(value<0):(value>0);
+  return `<td data-label="差異（B − A）" class="${good?"positive":"negative"}">${text}<small>${good?"B 較有利":"A 較有利"}</small></td>`;
+};
 /* 較長的欄位說明：解釋這個欄位在做什麼、什麼時候該用 */
 const note=(title,body)=>`<div class="field-note"><strong>${title}</strong><p>${body}</p></div>`;
 const set=(id,value)=>{const node=$("#"+id);if(node)node.textContent=value};
 const setFormula=(id,text)=>{const node=$("#"+id+"-formula");if(node)node.textContent=text||""};
-const heading=(eyebrow,title,description)=>`<div class="panel-heading"><div><p class="eyebrow">${eyebrow}</p><h2>${title}</h2></div><p>${description}</p></div><div class="panel-tools"><button type="button" class="formula-toggle" id="formula-toggle" aria-pressed="false">顯示計算式</button><button type="button" class="panel-action" data-export="copy">複製結果</button><button type="button" class="panel-action" data-export="csv">下載 CSV</button><span class="export-status" id="export-status" role="status" aria-live="polite"></span></div>${check("panel-check")}`;
+const heading=(eyebrow,title,description)=>`<div class="panel-heading"><div><p class="eyebrow">${eyebrow}</p><h2>${title}</h2></div><p>${description}</p></div><div class="panel-tools"><button type="button" class="formula-toggle" id="formula-toggle" aria-pressed="false">顯示計算式</button><button type="button" class="panel-action" data-export="report">列印／存 PDF</button><button type="button" class="panel-action" data-export="copy">複製結果</button><button type="button" class="panel-action" data-export="csv">下載 CSV</button><span class="export-status" id="export-status" role="status" aria-live="polite"></span></div>${check("panel-check")}`;
 
 function setCheck(id,items){
   const node=$("#"+id);
@@ -428,7 +450,12 @@ calc:()=>{
   setCheck("panel-check",blankFieldNotice());
 }},
 
-policy:{html:()=>`${heading("POLICY VALUE","保單價值分析","依保單年度輸入保費與解約金；只做現金流試算，不代表商品建議。")}${note("這兩欄怎麼填","打開保單條款或建議書裡的「保單價值表」，會有一張逐年的表格。<br><b>每年度保費</b>：第 1 年到第 N 年各繳多少，依年度順序用逗號分隔。每年一樣多就重複填；躉繳（一次繳清）只填第一年、其餘填 0。<br><b>各年度末解約金</b>：同一張表上「解約金」或「保單價值準備金」欄位的數字，第 1 個對應第 1 年年末，以此類推。<br>兩欄的<b>筆數要一樣</b>，第 N 個數字要對到第 N 個保單年度，否則年度會對不齊。")}<div class="split-input">${area("p-premiums","每年度保費","100000,100000,100000,100000,100000,100000,100000,100000,100000,100000","第 1 年到第 N 年，依序用逗號分隔。")}${area("p-values","各年度末解約金／保單價值","20000,80000,160000,260000,380000,510000,650000,800000,960000,1130000","對應各年度末的解約金，筆數要與保費相同。")}</div>${check("p-check")}<div class="form-grid compact">${field("p-benefit","保障金額",3000000,"元","身故或全殘可領的保額，用來看保障是已繳保費的幾倍。")}<label class="field"><span>保費繳納時點</span><select id="p-timing"><option value="begin">年初繳（一般壽險，預設）</option><option value="end">年末繳</option></select><small>保險公司的建議書多以年初繳計算。選錯會讓 IRR 差好幾個百分點。</small></label></div><div class="results-grid">${result("p-paid","最新年度累積保費","到目前為止總共繳了多少")}${result("p-value","最新解約金","現在解約可以拿回多少")}${result("p-irr","最新年度解約金 IRR","若現在解約，這張保單的年化報酬率")}${result("p-leverage","保障／累積保費倍數","每繳 1 元保費換到幾元保障")}${result("p-break","解約金損益兩平年度","第幾年解約金才追上已繳保費")}</div><div class="table-wrap"><table><thead><tr><th>年度</th><th>累積保費</th><th>保單價值</th><th>年度 IRR</th></tr></thead><tbody id="p-table"></tbody></table></div>${chart("p-chart","累積保費 vs 保單價值")}`,
+policy:{html:()=>`${heading("POLICY VALUE","保單價值分析","依保單年度輸入保費與解約金；只做現金流試算，不代表商品建議。")}${note("這兩欄怎麼填","打開保單條款或建議書裡的「保單價值表」，會有一張逐年的表格。<br><b>每年度保費</b>：第 1 年到第 N 年各繳多少，依年度順序用逗號分隔。每年一樣多就重複填；躉繳（一次繳清）只填第一年、其餘填 0。<br><b>各年度末解約金</b>：同一張表上「解約金」或「保單價值準備金」欄位的數字，第 1 個對應第 1 年年末，以此類推。<br>兩欄的<b>筆數要一樣</b>，第 N 個數字要對到第 N 個保單年度，否則年度會對不齊。")}<div class="split-input">${area("p-premiums","每年度保費","100000,100000,100000,100000,100000,100000,100000,100000,100000,100000","第 1 年到第 N 年，依序用逗號分隔。")}${area("p-values","各年度末解約金／保單價值","20000,80000,160000,260000,380000,510000,650000,800000,960000,1130000","對應各年度末的解約金，筆數要與保費相同。")}</div>${check("p-check")}<div class="form-grid compact">${field("p-benefit","保障金額",3000000,"元","身故或全殘可領的保額，用來看保障是已繳保費的幾倍。")}<label class="field"><span>保費繳納時點</span><select id="p-timing"><option value="begin">年初繳（一般壽險，預設）</option><option value="end">年末繳</option></select><small>保險公司的建議書多以年初繳計算。選錯會讓 IRR 差好幾個百分點。</small></label></div><div class="results-grid">${result("p-paid","最新年度累積保費","到目前為止總共繳了多少")}${result("p-value","最新解約金","現在解約可以拿回多少")}${result("p-irr","最新年度解約金 IRR","若現在解約，這張保單的年化報酬率")}${result("p-leverage","保障／累積保費倍數","每繳 1 元保費換到幾元保障")}${result("p-break","解約金損益兩平年度","第幾年解約金才追上已繳保費")}</div><div class="table-wrap"><table><thead><tr><th>年度</th><th>累積保費</th><th>保單價值</th><th>年度 IRR</th></tr></thead><tbody id="p-table"></tbody></table></div>${chart("p-chart","累積保費 vs 保單價值")}${compare(
+"保單並排比較",
+note("兩張保單擺在一起看","<b>保單 A</b> 直接沿用你在上方輸入的資料，只要再填<b>保單 B</b> 就能比較。<br>下方會列出累積保費、解約金、年化 IRR 與損益兩平年度的差異；<b>綠色代表保單 B 較有利</b>。<br>比較的是同一個保單年度（取兩張都有資料的最後一年），保障內容與條款差異請另外檢視，不是只看 IRR。"),
+`<p class="compare-hint">使用上方已輸入的「每年度保費」與「各年度末解約金」。</p><div class="form-grid compact">${field("p-benefit-a","保障金額",3000000,"元","留空沿用上方的保障金額")}</div>`,
+`${area("p-premiums-b","每年度保費","120000,120000,120000,120000,120000,120000,120000,120000,120000,120000","第 1 年到第 N 年，依序用逗號分隔。")}${area("p-values-b","各年度末解約金","30000,110000,210000,330000,470000,630000,800000,980000,1180000,1390000","筆數要與保費相同。")}<div class="form-grid compact">${field("p-benefit-b","保障金額",3600000,"元","")}</div>`,
+"cmp-policy-table",["項目","保單 A","保單 B","差異（B − A）"])}`,
 calc:()=>{
   const premiumCheck=countBadEntries(raw("p-premiums")),valueCheck=countBadEntries(raw("p-values"));
   const premiums=parseCashflows(raw("p-premiums")).map(Math.abs),values=parseCashflows(raw("p-values"));
@@ -474,6 +501,47 @@ calc:()=>{
     xTitle:"保單年度（兩線交叉處即為損益兩平）",
     empty:"輸入每年度保費與解約金後會畫出兩條曲線"
   });
+
+  /* ---- 保單並排比較 ---- */
+  const buildRows=(prem,vals)=>vals.map((value,index)=>{
+    const used=prem.slice(0,index+1);
+    const paid=used.reduce((sum,x)=>sum+x,0);
+    let flows;
+    if(atBegin){flows=[...used.map(x=>-x),value]}
+    else{flows=[0,...used.map(x=>-x)];flows[flows.length-1]+=value}
+    return{year:index+1,value,paid,rate:irr(flows)};
+  });
+  const premB=parseCashflows(raw("p-premiums-b")).map(Math.abs);
+  const valsB=parseCashflows(raw("p-values-b"));
+  const rowsB=buildRows(premB,valsB);
+  const cmpTable=$("#cmp-policy-table");
+  if(cmpTable){
+    const span=Math.min(rows.length,rowsB.length);
+    if(span<1){
+      cmpTable.innerHTML=`<tr><td data-label="狀態" colspan="4">在上方輸入保單 A、並在右欄輸入保單 B 的保費與解約金後，會顯示比較結果。</td></tr>`;
+    }else{
+      const a=rows[span-1],b=rowsB[span-1];
+      const benefitA=isBlank("p-benefit-a")?val("p-benefit"):val("p-benefit-a");
+      const benefitB=val("p-benefit-b");
+      const levA=a.paid?benefitA/a.paid:Number.NaN, levB=b.paid?benefitB/b.paid:Number.NaN;
+      const beA=rows.find(x=>x.value>=x.paid)?.year, beB=rowsB.find(x=>x.value>=x.paid)?.year;
+      const rowsOut=[
+        [`比較年度`,`第 ${span} 年`,`第 ${span} 年`,`<td data-label="差異（B − A）">—</td>`],
+        /* 保費與解約金金額本身沒有絕對好壞（繳得多本來就領得多），不下判讀；
+           IRR、保障倍數、損益兩平年度是已標準化的效率指標，方向才明確。 */
+        ["累積保費",money(a.paid),money(b.paid),diffCell(b.paid-a.paid,v=>money(Math.abs(v)))],
+        ["解約金",money(a.value),money(b.value),diffCell(b.value-a.value,v=>money(Math.abs(v)))],
+        ["年化 IRR",pct(a.rate),pct(b.rate),diffCell(b.rate-a.rate,v=>pct(Math.abs(v)),"higher")],
+        ["保障金額",money(benefitA),money(benefitB),diffCell(benefitB-benefitA,v=>money(Math.abs(v)))],
+        ["保障／保費倍數",Number.isFinite(levA)?`${num(levA)} 倍`:DASH,Number.isFinite(levB)?`${num(levB)} 倍`:DASH,diffCell(levB-levA,v=>`${num(Math.abs(v))} 倍`,"higher")],
+        ["損益兩平年度",beA?`第 ${beA} 年`:"期間內未達成",beB?`第 ${beB} 年`:"期間內未達成",
+         (beA&&beB)?diffCell(beB-beA,v=>`${num(Math.abs(v),0)} 年`,"lower"):`<td data-label="差異（B − A）">${DASH}</td>`]
+      ];
+      cmpTable.innerHTML=rowsOut.map(r=>
+        `<tr><td data-label="項目">${r[0]}</td><td data-label="保單 A">${r[1]}</td><td data-label="保單 B">${r[2]}</td>${r[3]}</tr>`
+      ).join("");
+    }
+  }
   setCheck("panel-check",blankFieldNotice());
 }},
 
@@ -570,7 +638,12 @@ calc:()=>{
   setCheck("panel-check",blankFieldNotice());
 }},
 
-loan:{html:()=>`${heading("DEBT LAB","貸款與分期","本息平均攤還採固定利率估算；實際費用仍應包含開辦費、帳管費與違約金。")}${note("這組工具在算什麼","採「本息平均攤還」——每月還款金額固定，前期還的多半是利息，後期才主要還到本金。<br>採固定利率估算，實際房貸多為機動利率，且未包含開辦費、帳管費、提前清償違約金，實際總成本會更高。")}<div class="form-grid">${field("l-principal","貸款本金",5000000,"元","實際跟銀行借的金額，不含自備款。")}${field("l-rate","貸款年利率",2.2,"%","銀行給的年利率，填 2.2 代表 2.2%。")}${field("l-months","貸款期數",360,"月","單位是「月」。20 年 = 240、30 年 = 360、40 年 = 480。")}${field("l-extra","每月額外還款",5000,"元","每月在正常月付之外多還的錢，用來看能提前多久還完。留空視為 0。")}${field("l-alt","比較方案年利率",2.6,"%","另一家銀行或另一個方案的利率，用來比較月付差多少。")}</div>${check("l-check")}<div class="results-grid">${result("l-payment","每月本息攤還","固定利率下每月要繳的金額")}${result("l-interest","原方案總利息","整段期間總共付出的利息")}${result("l-faster","額外還款後期數","每月多還之後，幾個月可以還完")}${result("l-save","預估節省利息","提前還款省下的利息總額")}${result("l-alt-payment","比較方案月付金","改用比較利率的每月金額")}${result("l-diff","兩方案月付差額","正數代表比較方案比較貴")}</div>${chart("l-chart","剩餘本金與累計利息")}<div class="subsection"><h3>分期付款實質利率</h3>${note("用來看「零利率分期」是不是真的零利率","很多分期方案標榜免利息，但現金價會比較便宜。把兩個價格填進去，就能算出你其實付了多少年化利率。")}<div class="form-grid compact">${field("l-cash","現金價",100000,"元","一次付清的價格。")}${field("l-total","分期總價",108000,"元","分期付款最後總共要付的金額（每期金額 × 期數）。")}${field("l-install-months","分期期數",12,"月","總共分幾期，通常等於幾個月。")}</div><div class="results-grid">${result("l-install-rate","估計年化實質利率","換算成年利率後，這個分期實際多付多少")}</div></div><div class="subsection"><h3>信用卡循環利息</h3>${note("卡費沒繳清時會產生的利息","只繳最低應繳金額時，剩下的未繳金額就會開始以循環利率按日計息。")}<div class="form-grid compact">${field("l-card","循環餘額",50000,"元","這期沒有繳清、留在卡上的金額。")}${field("l-card-rate","循環年利率",15,"%","帳單上的循環信用利率，台灣上限為 15%。")}${field("l-days","計息天數",30,"天","從入帳到還款經過幾天，通常抓一個帳單週期 30 天。")}</div><div class="results-grid">${result("l-card-interest","本期估計循環利息","這段期間會被收多少利息")}</div></div>`,
+loan:{html:()=>`${heading("DEBT LAB","貸款與分期","本息平均攤還採固定利率估算；實際費用仍應包含開辦費、帳管費與違約金。")}${note("這組工具在算什麼","採「本息平均攤還」——每月還款金額固定，前期還的多半是利息，後期才主要還到本金。<br>採固定利率估算，實際房貸多為機動利率，且未包含開辦費、帳管費、提前清償違約金，實際總成本會更高。")}<div class="form-grid">${field("l-principal","貸款本金",5000000,"元","實際跟銀行借的金額，不含自備款。")}${field("l-rate","貸款年利率",2.2,"%","銀行給的年利率，填 2.2 代表 2.2%。")}${field("l-months","貸款期數",360,"月","單位是「月」。20 年 = 240、30 年 = 360、40 年 = 480。")}${field("l-extra","每月額外還款",5000,"元","每月在正常月付之外多還的錢，用來看能提前多久還完。留空視為 0。")}${field("l-alt","比較方案年利率",2.6,"%","另一家銀行或另一個方案的利率，用來比較月付差多少。")}</div>${check("l-check")}<div class="results-grid">${result("l-payment","每月本息攤還","固定利率下每月要繳的金額")}${result("l-interest","原方案總利息","整段期間總共付出的利息")}${result("l-faster","額外還款後期數","每月多還之後，幾個月可以還完")}${result("l-save","預估節省利息","提前還款省下的利息總額")}${result("l-alt-payment","比較方案月付金","改用比較利率的每月金額")}${result("l-diff","兩方案月付差額","正數代表比較方案比較貴")}</div>${chart("l-chart","剩餘本金與累計利息")}<div class="subsection"><h3>分期付款實質利率</h3>${note("用來看「零利率分期」是不是真的零利率","很多分期方案標榜免利息，但現金價會比較便宜。把兩個價格填進去，就能算出你其實付了多少年化利率。")}<div class="form-grid compact">${field("l-cash","現金價",100000,"元","一次付清的價格。")}${field("l-total","分期總價",108000,"元","分期付款最後總共要付的金額（每期金額 × 期數）。")}${field("l-install-months","分期期數",12,"月","總共分幾期，通常等於幾個月。")}</div><div class="results-grid">${result("l-install-rate","估計年化實質利率","換算成年利率後，這個分期實際多付多少")}</div></div><div class="subsection"><h3>信用卡循環利息</h3>${note("卡費沒繳清時會產生的利息","只繳最低應繳金額時，剩下的未繳金額就會開始以循環利率按日計息。")}<div class="form-grid compact">${field("l-card","循環餘額",50000,"元","這期沒有繳清、留在卡上的金額。")}${field("l-card-rate","循環年利率",15,"%","帳單上的循環信用利率，台灣上限為 15%。")}${field("l-days","計息天數",30,"天","從入帳到還款經過幾天，通常抓一個帳單週期 30 天。")}</div><div class="results-grid">${result("l-card-interest","本期估計循環利息","這段期間會被收多少利息")}</div></div>${compare(
+"方案並排比較",
+note("兩個貸款方案擺在一起看","分別填入兩家銀行、或兩種年期的條件，下方會直接列出月付金、總利息與總支出的差額。<br><b>綠色代表方案 B 比較划算，紅色代表方案 A 比較划算。</b>欄位留空會沿用上方「貸款本金／年利率／貸款期數」的數值。"),
+`<div class="form-grid compact">${field("cmp-a-principal","貸款本金",5000000,"元","留空沿用上方")}${field("cmp-a-rate","年利率",2.2,"%","留空沿用上方")}${field("cmp-a-months","貸款期數",360,"月","留空沿用上方")}</div>`,
+`<div class="form-grid compact">${field("cmp-b-principal","貸款本金",5000000,"元","")}${field("cmp-b-rate","年利率",2.6,"%","")}${field("cmp-b-months","貸款期數",240,"月","")}</div>`,
+"cmp-loan-table",["項目","方案 A","方案 B","差異（B − A）"])}`,
 calc:()=>{
   const principal=val("l-principal"),rate=val("l-rate")/100,months=val("l-months");
   const issues=[];
@@ -627,6 +700,38 @@ calc:()=>{
     xTitle:"還款進度",
     empty:"填入貸款本金、利率與期數後會畫出攤還曲線"
   });
+
+  /* ---- 方案並排比較 ---- */
+  const pick=(cmpId,fallbackId)=>isBlank(cmpId)?val(fallbackId):val(cmpId);
+  const planOf=(prefix)=>{
+    const p=pick(prefix+"-principal","l-principal"),
+          r=pick(prefix+"-rate","l-rate")/100,
+          m=pick(prefix+"-months","l-months");
+    if(!(p>0&&m>0))return null;
+    const a=amortize(p,r,m);
+    return{principal:p,rate:r,months:m,monthly:a.scheduled,interest:a.totalInterest,total:p+a.totalInterest};
+  };
+  const A=planOf("cmp-a"),B=planOf("cmp-b");
+  const table2=$("#cmp-loan-table");
+  if(table2){
+    if(!A||!B){
+      table2.innerHTML=`<tr><td data-label="狀態" colspan="4">兩個方案都填入「貸款本金」與「貸款期數」後，會顯示比較結果。</td></tr>`;
+    }else{
+      const sameLoan=Math.abs(A.principal-B.principal)<1e-9;
+      const rows=[
+        ["貸款本金",money(A.principal),money(B.principal),diffCell(B.principal-A.principal,v=>money(Math.abs(v)))],
+        ["年利率",pct(A.rate),pct(B.rate),diffCell(B.rate-A.rate,v=>pct(Math.abs(v)),"lower")],
+        ["貸款期數",`${num(A.months,0)} 月`,`${num(B.months,0)} 月`,diffCell(B.months-A.months,v=>`${num(Math.abs(v),0)} 月`)],
+        ["每月月付金",money(A.monthly),money(B.monthly),diffCell(B.monthly-A.monthly,v=>money(Math.abs(v)))],
+        /* 只有在本金相同時，比較總利息／總支出才有明確的好壞 */
+        ["總利息",money(A.interest),money(B.interest),diffCell(B.interest-A.interest,v=>money(Math.abs(v)),sameLoan?"lower":null)],
+        ["總支出（本金＋利息）",money(A.total),money(B.total),diffCell(B.total-A.total,v=>money(Math.abs(v)),sameLoan?"lower":null)]
+      ];
+      table2.innerHTML=rows.map(r=>
+        `<tr><td data-label="項目">${r[0]}</td><td data-label="方案 A">${r[1]}</td><td data-label="方案 B">${r[2]}</td>${r[3]}</tr>`
+      ).join("");
+    }
+  }
   setCheck("panel-check",blankFieldNotice());
 }},
 
@@ -962,10 +1067,116 @@ function downloadCsv(){
     exportStatus("已下載 CSV");
   }catch(error){exportStatus("此瀏覽器不支援下載，請改用複製結果")}
 }
+/* -------- 客戶版列印報告：帶顧問資訊、輸入條件、結果、計算式與圖表 -------- */
+const ADVISOR={
+  name:"葉秀庭",
+  title:"保險經紀人｜風險規劃顧問",
+  org:"大誠保險經紀人股份有限公司",
+  contact:"https://line.me/ti/p/gpFhzbhd6U"
+};
+function buildReport(){
+  const {tool,inputs,results,notices,table,time}=collectPanelData();
+  const esc=escapeHtml;
+  const inputRows=inputs.map(x=>{
+    const v=x.filled?esc(x.value)+(x.unit?" "+esc(x.unit):""):"<i>未填</i>";
+    return `<tr><th>${esc(x.label)}</th><td>${x.list?`<pre>${v}</pre>`:v}</td></tr>`;
+  }).join("");
+  const resultCards=results.map(x=>
+    `<div class="r"><span>${esc(x.label)}</span><strong>${esc(x.value)}</strong>${x.formula?`<em>${esc(x.formula)}</em>`:""}</div>`
+  ).join("");
+  const tableHtml=table&&table.body.length
+    ? `<h2>明細</h2><table class="grid"><thead><tr>${table.head.map(h=>`<th>${esc(h)}</th>`).join("")}</tr></thead><tbody>${
+        table.body.map(r=>`<tr>${r.map(c=>`<td>${esc(c)}</td>`).join("")}</tr>`).join("")}</tbody></table>`
+    : "";
+  const charts=[...panelEl.querySelectorAll(".chart-wrap")].map(fig=>{
+    const cap=fig.querySelector("figcaption")?.textContent||"";
+    const svg=fig.querySelector("svg");
+    return svg?`<figure><figcaption>${esc(cap)}</figcaption>${svg.outerHTML}</figure>`:"";
+  }).join("");
+  const noticeHtml=notices.length
+    ? `<h2>提醒</h2><ul>${notices.map(t=>`<li>${esc(t)}</li>`).join("")}</ul>` : "";
+
+  return `<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8">
+<title>${esc(tool.title)}試算報告｜${esc(ADVISOR.name)}</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;padding:28px 30px;color:#222;background:#fff;
+ font-family:-apple-system,"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+ font-size:12px;line-height:1.65}
+.head{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;
+ border-bottom:2px solid #454e47;padding-bottom:14px;margin-bottom:20px}
+.head h1{margin:0 0 4px;font-size:20px;font-weight:600}
+.head .sub{color:#666;font-size:11px}
+.who{text-align:right;font-size:11px;line-height:1.7}
+.who b{display:block;font-size:13px;color:#454e47}
+.who span{color:#666}
+h2{font-size:13px;margin:22px 0 8px;padding-bottom:5px;border-bottom:1px solid #ccc;font-weight:600}
+table{width:100%;border-collapse:collapse;font-size:11.5px}
+th,td{text-align:left;padding:6px 9px;border-bottom:1px solid #e2e2e2;vertical-align:top}
+table:not(.grid) th{width:38%;color:#555;font-weight:500;background:#f6f5f2}
+.grid th{background:#eceae5;font-weight:600}
+pre{margin:0;font:inherit;white-space:pre-wrap}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:8px}
+.r{border:1px solid #ddd;border-top:3px solid #454e47;padding:9px 10px;break-inside:avoid}
+.r span{display:block;font-size:10px;color:#666}
+.r strong{display:block;font-size:15px;margin-top:3px}
+.r em{display:block;font-size:9.5px;color:#777;font-style:normal;margin-top:5px;
+ padding-top:4px;border-top:1px dashed #ddd;line-height:1.5}
+figure{margin:12px 0 0;break-inside:avoid}
+figcaption{font-size:11px;color:#555;margin-bottom:5px}
+svg{width:100%;height:auto;max-width:640px}
+.chart-grid{stroke:#ddd;stroke-width:1}.chart-grid.zero{stroke:#999}
+.chart-axis{fill:#666;font-size:10px}
+.chart-line{fill:none;stroke-width:2}
+.chart-line.s-a,.chart-dot.s-a{stroke:#454e47}.chart-line.s-b,.chart-dot.s-b{stroke:#8a7a55}
+.chart-line.s-c,.chart-dot.s-c{stroke:#8e5c52}.chart-line.dashed{stroke-dasharray:5 4}
+.chart-area{opacity:.12}.chart-area.s-a{fill:#454e47}.chart-area.s-b{fill:#8a7a55}.chart-area.s-c{fill:#8e5c52}
+.chart-bar.s-a{fill:#454e47}.chart-bar.s-b{fill:#8a7a55}.chart-bar.s-c{fill:#8e5c52}
+.chart-dot.s-a{fill:#454e47}.chart-dot.s-b{fill:#8a7a55}.chart-dot.s-c{fill:#8e5c52}
+.cursor-line,.cursor-dot,.chart-cursor{display:none}
+ul{margin:6px 0;padding-left:18px}li{margin:2px 0}
+.foot{margin-top:24px;padding-top:12px;border-top:1px solid #ccc;font-size:10px;color:#666;line-height:1.7}
+.positive{color:#2c6b45}.negative{color:#9c463a}
+td small{display:block;font-size:9.5px;color:#777}
+@page{margin:14mm}
+@media print{body{padding:0}.noprint{display:none}}
+.noprint{margin:0 0 18px;padding:10px 12px;background:#f2efe9;border:1px solid #ddd;font-size:11px}
+</style></head><body>
+<p class="noprint">請使用瀏覽器的「列印」功能（Ctrl/⌘ + P），目的地選「另存為 PDF」即可產生檔案。這段提示不會被印出來。</p>
+<div class="head">
+  <div><h1>${esc(tool.number)} ${esc(tool.title)}　試算報告</h1>
+    <div class="sub">試算時間：${esc(time)}</div></div>
+  <div class="who"><b>${esc(ADVISOR.name)}</b><span>${esc(ADVISOR.title)}</span>
+    <span>${esc(ADVISOR.org)}</span><span>${esc(ADVISOR.contact)}</span></div>
+</div>
+<h2>輸入條件</h2><table>${inputRows}</table>
+<h2>試算結果</h2><div class="cards">${resultCards}</div>
+${charts?`<h2>圖表</h2>${charts}`:""}
+${tableHtml}
+${noticeHtml}
+<div class="foot">
+本報告由 EliNotebook 金融工具中心產生，屬一般財務數學試算，<b>不構成投資、稅務、授信或保險之建議、要約或保證</b>。
+市場報酬、利率、匯率、稅負與保單條款均可能變動；實際商品內容、費率、承保條件與除外責任，
+以各金融機構及保險公司正式文件與契約為準，核保與理賠結果由該機構依個案審核。
+</div></body></html>`;
+}
+function openReport(){
+  try{
+    const win=window.open("","_blank");
+    if(!win){exportStatus("瀏覽器封鎖了新視窗，請允許彈出視窗");return}
+    win.document.open();
+    win.document.write(buildReport());
+    win.document.close();
+    exportStatus("報告已開啟，可直接列印或存成 PDF");
+  }catch(error){exportStatus("無法開啟報告視窗")}
+}
+
 panelEl.addEventListener("click",event=>{
   const button=event.target.closest("[data-export]");
   if(!button)return;
-  if(button.dataset.export==="copy")copyText(panelAsText());
+  const kind=button.dataset.export;
+  if(kind==="copy")copyText(panelAsText());
+  else if(kind==="report")openReport();
   else downloadCsv();
 });
 

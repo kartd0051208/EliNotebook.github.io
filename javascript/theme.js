@@ -101,4 +101,16 @@
   else init();
   /* 保險：若 DOMContentLoaded 因故沒觸發，載入完成後再補跑一次 */
   window.addEventListener("load",init);
+
+  /* ---------------------------------------------------------------------------
+     註冊 Service Worker：讓網站可離線使用、並可加入主畫面。
+     以 file:// 開啟或瀏覽器不支援時會自動略過，不影響其他功能。
+     --------------------------------------------------------------------------- */
+  window.addEventListener("load",function(){
+    if(!("serviceWorker" in navigator))return;
+    if(location.protocol!=="https:"&&location.hostname!=="localhost"&&location.hostname!=="127.0.0.1")return;
+    try{
+      navigator.serviceWorker.register("./sw.js").catch(function(){/* 註冊失敗不影響瀏覽 */});
+    }catch(e){/* 忽略 */}
+  });
 })();

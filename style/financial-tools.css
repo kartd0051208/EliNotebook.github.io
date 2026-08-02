@@ -106,7 +106,7 @@ body{
   margin:0;
   background:var(--paper);
   color:var(--ink);
-  font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+  font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC","PingFang TC","Microsoft JhengHei","Microsoft YaHei",sans-serif;
   font-size:16px;
   line-height:1.7;
   -webkit-tap-highlight-color:transparent;
@@ -123,6 +123,13 @@ img{max-width:100%;display:block}
 input[type=number]{-moz-appearance:textfield;appearance:textfield}
 input[type=number]::-webkit-outer-spin-button,
 input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+
+.skip-link{
+  position:absolute;left:-9999px;top:0;z-index:60;
+  background:var(--surface);color:var(--ink);border:1px solid var(--line);
+  padding:12px 18px;font-size:14px;font-weight:600;
+}
+.skip-link:focus{left:max(12px,var(--safe-l));top:12px}
 
 /* =========================================================================
    Header
@@ -144,7 +151,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
   color:var(--green);background:var(--surface);
 }
 .brand div{display:flex;flex-direction:column;line-height:1.2;min-width:0}
-.brand strong{font-family:Georgia,"Noto Serif TC",serif;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brand strong{font-family:Georgia,"Noto Serif TC","Source Han Serif TC","PMingLiU","Microsoft JhengHei",serif;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .brand small{font-size:10.5px;letter-spacing:.16em;color:var(--muted)}
 .header-actions{display:flex;align-items:center;gap:10px;flex:none}
 .back-link{flex:none;font-size:13px;font-weight:600;border-bottom:1px solid var(--gold);padding:10px 2px;white-space:nowrap}
@@ -188,7 +195,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 }
 .eyebrow{font-size:11px;letter-spacing:.22em;color:var(--gold);font-weight:700;margin:0 0 12px}
 .hero .eyebrow{color:var(--brand-accent)}
-.hero h1,.tool-index h2,.formula-notes h2,.panel-heading h2{font-family:Georgia,"Noto Serif TC",serif;font-weight:500;margin:0}
+.hero h1,.tool-index h2,.formula-notes h2,.panel-heading h2{font-family:Georgia,"Noto Serif TC","Source Han Serif TC","PMingLiU","Microsoft JhengHei",serif;font-weight:500;margin:0}
 .hero h1{font-size:clamp(38px,11vw,92px);line-height:1.06}
 .hero>div>p:last-child{max-width:720px;color:var(--on-brand-muted);font-size:clamp(15px,3.6vw,17px)}
 .hero aside{border-top:1px solid var(--brand-accent);padding-top:20px}
@@ -478,8 +485,30 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
   @media (min-width:900px){ .split-input{grid-template-columns:minmax(0,1.3fr) minmax(230px,.7fr)} }
 }
 
+/* -------- 方案並排比較 -------- */
+.compare-grid{display:grid;grid-template-columns:1fr;gap:18px;margin:18px 0 4px}
+.compare-col{border:1px solid var(--line);padding:16px 16px 6px;background:var(--surface-alt)}
+.compare-col h4{
+  margin:0 0 14px;font-size:14px;font-weight:700;letter-spacing:.04em;
+  display:flex;align-items:center;gap:9px;
+}
+.compare-col h4 span{
+  width:22px;height:22px;flex:none;display:grid;place-items:center;
+  font-size:11px;font-weight:700;color:var(--on-badge);
+}
+.compare-col h4 .tag-a{background:var(--badge-info)}
+.compare-col h4 .tag-b{background:var(--badge-gold)}
+.compare-hint{margin:0 0 14px;font-size:12.5px;color:var(--muted);line-height:1.6}
+td small{display:block;font-size:10.5px;color:var(--muted);margin-top:2px;font-weight:400}
+@container calc (min-width:620px){
+  .compare-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@supports not (container-type:inline-size){
+  @media (min-width:900px){ .compare-grid{grid-template-columns:repeat(2,minmax(0,1fr))} }
+}
+
 .subsection{margin-top:32px;padding-top:22px;border-top:1px solid var(--line)}
-.subsection h3{font-family:Georgia,"Noto Serif TC",serif;font-size:clamp(19px,4vw,24px);font-weight:500}
+.subsection h3{font-family:Georgia,"Noto Serif TC","Source Han Serif TC","PMingLiU","Microsoft JhengHei",serif;font-size:clamp(19px,4vw,24px);font-weight:500}
 
 /* =========================================================================
    結果卡片 — auto-fit，2 欄到 N 欄自動調整
@@ -557,7 +586,7 @@ th{background:var(--thead-bg);font-size:11px;letter-spacing:.06em}
 }
 .result-peek.show{transform:none}
 .result-peek span{font-size:11px;letter-spacing:.05em;color:var(--on-brand-muted);flex:none}
-.result-peek strong{font-size:17px;font-family:Georgia,"Noto Serif TC",serif;text-align:right;overflow-wrap:anywhere}
+.result-peek strong{font-size:17px;font-family:Georgia,"Noto Serif TC","Source Han Serif TC","PMingLiU","Microsoft JhengHei",serif;text-align:right;overflow-wrap:anywhere}
 @media (min-width:860px){ .result-peek{display:none} }
 
 /* =========================================================================
@@ -616,6 +645,18 @@ footer p{font-size:12px;color:var(--on-brand-muted);max-width:700px}
   .result-card .formula:not(:empty){display:block!important}
   .chart-wrap{break-inside:avoid;border:1px solid #999;background:#fff}
   .input-check .chk{background:#f4f4f4}
+}
+
+/* =========================================================================
+   Windows 高對比模式（forced-colors）
+   ========================================================================= */
+@media (forced-colors:active){
+  .theme-toggle,.formula-toggle,.panel-action,.rail-arrow,#tool-nav>button,
+  .result-card,.chart-wrap,.field-note,.input-check .chk,.table-wrap{border:1px solid ButtonBorder}
+  .theme-toggle svg,.chart-line,.chart-dot{stroke:CanvasText}
+  .chart-bar,.chart-area{fill:CanvasText;forced-color-adjust:none}
+  #tool-nav>button.active{background:Highlight;color:HighlightText;forced-color-adjust:none}
+  .rail-progress>span{background:Highlight;forced-color-adjust:none}
 }
 
 /* =========================================================================

@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta
     http-equiv="Content-Security-Policy"
-    content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'none'; media-src 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'self'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests"
+    content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'none'; media-src 'none'; object-src 'none'; frame-src 'none'; worker-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests"
   >
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="description" content="葉秀庭｜保險經紀人與風險規劃顧問。提供家庭保障規劃、既有保障內容整理、企業團體保險及理賠流程資訊協助。">
@@ -33,7 +33,7 @@
   <title>葉秀庭｜保險經紀人・風險規劃顧問</title>
   <style>
     :root{--paper:#e9e5de;--ink:#2b2f31;--muted:#4f4b46;--deep:#454e47;--gold:#5f5338;--gold-text:#5f5338;--gold-soft:#cfc5ae;--line:rgba(43,47,49,.18);--card:#f3f0ea;--card-hover:#ded9d1;--eyebrow:#444e45;--accent-ink:#444e45;--lead:#4f4b46;--rule:#4f4b46;--trust:#4f4b46;--frame:#ded9d1;--frame-shadow:#d3cec4;--band:#ded9d1;--band-alt:#d3cec4;--logo-text:#3a3733;--logo-bg:#f3f0ea;--on-deep:#f6f4ee;--on-deep-muted:#e8e8e4;color-scheme:light}
-    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--paper);color:var(--ink);font-family:"Noto Serif TC","Songti TC","Times New Roman",serif}a{color:inherit;text-decoration:none}.skip-link{position:fixed;z-index:9999;left:16px;top:16px;transform:translateY(-160%);background:var(--card);color:var(--ink);padding:12px 16px;border:2px solid currentColor}.skip-link:focus{transform:none}a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid var(--gold-text);outline-offset:4px}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--paper);color:var(--ink);font-family:"Noto Serif TC","Source Han Serif TC","Songti TC","PMingLiU","MingLiU","Microsoft JhengHei",serif}a{color:inherit;text-decoration:none}.skip-link{position:fixed;z-index:9999;left:16px;top:16px;transform:translateY(-160%);background:var(--card);color:var(--ink);padding:12px 16px;border:2px solid currentColor}.skip-link:focus{transform:none}a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid var(--gold-text);outline-offset:4px}
     header{height:92px;display:flex;align-items:center;justify-content:space-between;gap:24px;padding:0 clamp(24px,5vw,80px);border-bottom:1px solid var(--line)}
     .brand{display:flex;align-items:center;gap:12px}.mark{width:42px;height:42px;border:1px solid var(--deep);display:grid;place-items:center;font:500 22px Georgia,serif}.brand strong{display:block;font-size:16px;letter-spacing:.16em}.brand small{display:block;margin-top:2px;color:var(--muted);font-size:10px;letter-spacing:.1em}
     nav{display:flex;gap:clamp(16px,2vw,36px);font-size:13px;letter-spacing:.08em}.header-actions{display:flex;align-items:center;gap:10px;flex-shrink:0}.cta,.primary{background:var(--deep);color:var(--on-deep);padding:14px 20px;font-size:13px;letter-spacing:.08em;display:inline-flex;align-items:center;justify-content:space-between;gap:24px}.header-feature{background:var(--card);color:var(--accent-ink);border:1px solid var(--gold);padding:13px 17px;font-size:12px;font-weight:600;letter-spacing:.05em;display:inline-flex;align-items:center;justify-content:center;gap:9px;white-space:nowrap;transition:background .18s ease,transform .18s ease}.header-feature:hover{background:var(--card-hover);transform:translateY(-1px)}
@@ -78,8 +78,79 @@
 
 @media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--paper:#191a18;--ink:#ece9e1;--muted:#c4bfbb;--deep:#2b302c;--gold:#bfb192;--gold-text:#bfb192;--gold-soft:#ae9c75;--line:rgba(236,233,225,.20);--card:#212320;--card-hover:#292b27;--eyebrow:#b9c3ba;--accent-ink:#b9c3ba;--lead:#c4bfbb;--rule:#c4bfbb;--trust:#c4bfbb;--frame:#292b27;--frame-shadow:#31332e;--band:#1f201e;--band-alt:#1c1d1b;--logo-text:#3a3733;--logo-bg:#e6e3dc;--on-deep:#f4f2ec;--on-deep-muted:#cfcec7;color-scheme:dark}}
 :root[data-theme="dark"]{--paper:#191a18;--ink:#ece9e1;--muted:#c4bfbb;--deep:#2b302c;--gold:#bfb192;--gold-text:#bfb192;--gold-soft:#ae9c75;--line:rgba(236,233,225,.20);--card:#212320;--card-hover:#292b27;--eyebrow:#b9c3ba;--accent-ink:#b9c3ba;--lead:#c4bfbb;--rule:#c4bfbb;--trust:#c4bfbb;--frame:#292b27;--frame-shadow:#31332e;--band:#1f201e;--band-alt:#1c1d1b;--logo-text:#3a3733;--logo-bg:#e6e3dc;--on-deep:#f4f2ec;--on-deep-muted:#cfcec7;color-scheme:dark}
-:root[data-theme="light"]{--paper:#e9e5de;--ink:#2b2f31;--muted:#4f4b46;--deep:#454e47;--gold:#5f5338;--gold-text:#5f5338;--gold-soft:#cfc5ae;--line:rgba(43,47,49,.18);--card:#f3f0ea;--card-hover:#ded9d1;--eyebrow:#444e45;--accent-ink:#444e45;--lead:#4f4b46;--rule:#4f4b46;--trust:#4f4b46;--frame:#ded9d1;--frame-shadow:#d3cec4;--band:#ded9d1;--band-alt:#d3cec4;--logo-text:#3a3733;--logo-bg:#f3f0ea;--on-deep:#f6f4ee;--on-deep-muted:#e8e8e4;color-scheme:light}</style>
+:root[data-theme="light"]{--paper:#e9e5de;--ink:#2b2f31;--muted:#4f4b46;--deep:#454e47;--gold:#5f5338;--gold-text:#5f5338;--gold-soft:#cfc5ae;--line:rgba(43,47,49,.18);--card:#f3f0ea;--card-hover:#ded9d1;--eyebrow:#444e45;--accent-ink:#444e45;--lead:#4f4b46;--rule:#4f4b46;--trust:#4f4b46;--frame:#ded9d1;--frame-shadow:#d3cec4;--band:#ded9d1;--band-alt:#d3cec4;--logo-text:#3a3733;--logo-bg:#f3f0ea;--on-deep:#f6f4ee;--on-deep-muted:#e8e8e4;color-scheme:light}
+@media print{
+ header,.header-actions,.theme-toggle,.skip-link,.strip,.contact,.partners,footer nav{display:none!important}
+ body{background:#fff;color:#000;font-size:11.5pt}
+ .pad{padding:16px 0!important}
+ .hero-visual,.about-photo{display:none}
+ h1{font-size:24pt}
+ a[href^="http"]::after{content:" (" attr(href) ")";font-size:9pt;color:#555}
+ .card,.company-fact{break-inside:avoid}
+}
+@media (forced-colors:active){
+ .theme-toggle,.header-feature,.cta,.primary,.line-btn,.test-btn,.card,.logo-card{border:1px solid ButtonBorder}
+ .theme-toggle svg{stroke:ButtonText}
+ .eyebrow:before,.code:before{background:CanvasText;forced-color-adjust:none}
+}
+</style>
   <noscript><style>.theme-toggle{display:none!important}</style></noscript>
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://kartd0051208.github.io/EliNotebook.github.io/#website",
+      "url": "https://kartd0051208.github.io/EliNotebook.github.io/",
+      "name": "葉秀庭｜保險經紀人・風險規劃顧問",
+      "inLanguage": "zh-Hant-TW",
+      "publisher": { "@id": "https://kartd0051208.github.io/EliNotebook.github.io/#person" }
+    },
+    {
+      "@type": "Person",
+      "@id": "https://kartd0051208.github.io/EliNotebook.github.io/#person",
+      "name": "葉秀庭",
+      "jobTitle": "保險經紀人｜風險規劃顧問",
+      "description": "從家庭責任、財務能力與既有保障出發，整理風險需求與可參考的保障資訊，並說明條款差異與理賠申請流程。",
+      "url": "https://kartd0051208.github.io/EliNotebook.github.io/",
+      "image": "https://kartd0051208.github.io/EliNotebook.github.io/images/profile/eli-portrait-724.jpg",
+      "knowsLanguage": ["zh-Hant", "zh-TW"],
+      "worksFor": { "@id": "https://kartd0051208.github.io/EliNotebook.github.io/#org" },
+      "knowsAbout": ["家庭保障規劃", "保單內容整理", "企業與團體保險", "理賠流程資訊", "風險規劃"],
+      "sameAs": ["https://line.me/ti/p/gpFhzbhd6U"]
+    },
+    {
+      "@type": "Organization",
+      "@id": "https://kartd0051208.github.io/EliNotebook.github.io/#org",
+      "name": "大誠保險經紀人股份有限公司",
+      "foundingDate": "1993",
+      "description": "保險經紀人公司，與多家產、壽險公司合作。"
+    },
+    {
+      "@type": "InsuranceAgency",
+      "@id": "https://kartd0051208.github.io/EliNotebook.github.io/#service",
+      "name": "葉秀庭 保險規劃服務",
+      "url": "https://kartd0051208.github.io/EliNotebook.github.io/",
+      "image": "https://kartd0051208.github.io/EliNotebook.github.io/images/profile/eli-portrait-724.jpg",
+      "areaServed": { "@type": "Country", "name": "台灣" },
+      "availableLanguage": "zh-Hant",
+      "parentOrganization": { "@id": "https://kartd0051208.github.io/EliNotebook.github.io/#org" },
+      "employee": { "@id": "https://kartd0051208.github.io/EliNotebook.github.io/#person" },
+      "hasOfferCatalog": {
+        "@type": "OfferCatalog",
+        "name": "服務項目",
+        "itemListElement": [
+          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "家庭保障規劃", "description": "依家庭責任、收入與人生階段，盤點壽險、醫療、意外與長照風險。" } },
+          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "既有保障內容整理", "description": "整理既有保單的保障範圍、除外責任與可能重複項目，作為後續評估的參考。" } },
+          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "企業與團體保險", "description": "依企業規模與工作風險，規劃雇主責任、團體與工程相關保障。" } },
+          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "理賠流程資訊協助", "description": "依保單條款與保險公司規定，協助整理申請文件及流程資訊。" } }
+        ]
+      }
+    }
+  ]
+}
+  </script>
 </head>
 <body>
   <a class="skip-link" href="#main-content">跳至主要內容</a>
@@ -123,36 +194,36 @@
       <p class="eyebrow">INSURANCE PARTNERS</p><h2>合作保險公司</h2>
       <p class="section-copy">我所在的大誠保險經紀人與多家產、壽險公司合作，可依不同需求整理各公司正式提供的保障內容與條款資訊。</p>
       <div class="partner-group"><div class="partner-heading"><h3>壽險合作夥伴</h3><span>LIFE INSURANCE</span></div><div class="logo-grid">
-          <div class="logo-card"><img src="images/partners/life/bnp-paribas-cardif.png" alt="法國巴黎人壽標誌" loading="lazy" width="32" height="32"><span>法國巴黎人壽</span></div>
-          <div class="logo-card"><img src="images/partners/life/transglobe.png" alt="全球人壽標誌" loading="lazy" width="48" height="48"><span>全球人壽</span></div>
-          <div class="logo-card"><img src="images/partners/life/taiwan-life.png" alt="台灣人壽標誌" loading="lazy" width="48" height="48"><span>台灣人壽</span></div>
-          <div class="logo-card"><img src="images/partners/life/farglory-life.png" alt="遠雄人壽標誌" loading="lazy" width="16" height="16"><span>遠雄人壽</span></div>
-          <div class="logo-card"><img src="images/partners/life/yuanta-life.png" alt="元大人壽標誌" loading="lazy" width="16" height="16"><span>元大人壽</span></div>
-          <div class="logo-card"><img src="images/partners/life/allianz-life.png" alt="安聯人壽標誌" loading="lazy" width="128" height="128"><span>安聯人壽</span></div>
-          <div class="logo-card"><img src="images/partners/life/chubb-life.png" alt="安達人壽標誌" loading="lazy" width="32" height="32"><span>安達人壽</span></div>
-          <div class="logo-card"><img src="images/partners/life/shin-kong-life.png" alt="新光人壽標誌" loading="lazy" width="16" height="16"><span>新光人壽</span></div>
-          <div class="logo-card"><img src="images/partners/life/hontai-life.png" alt="宏泰人壽標誌" loading="lazy" width="128" height="128"><span>宏泰人壽</span></div>
-          <div class="logo-card"><img src="images/partners/life/fubon-life.png" alt="富邦人壽標誌" loading="lazy" width="64" height="64"><span>富邦人壽</span></div>
-          <div class="logo-card"><img src="images/partners/life/aia-life.png" alt="友邦人壽標誌" loading="lazy" width="16" height="16"><span>友邦人壽</span></div>
-          <div class="logo-card"><img src="images/partners/life/prudential-life.png" alt="保誠人壽標誌" loading="lazy" width="32" height="32"><span>保誠人壽</span></div>
-          <div class="logo-card"><img src="images/partners/life/kgi-life.png" alt="凱基人壽標誌" loading="lazy" width="128" height="128"><span>凱基人壽</span></div>
-          <div class="logo-card"><img src="images/partners/life/bank-taiwan-life.png" alt="台銀人壽標誌" loading="lazy" width="100" height="100"><span>台銀人壽</span></div>
-          <div class="logo-card"><img src="images/partners/life/first-life.png" alt="第一金人壽標誌" loading="lazy" width="48" height="48"><span>第一金人壽</span></div>
+          <div class="logo-card"><picture><source srcset="images/partners/life/bnp-paribas-cardif.webp" type="image/webp"><img src="images/partners/life/bnp-paribas-cardif.png" alt="法國巴黎人壽標誌" loading="lazy" width="32" height="32"></picture><span>法國巴黎人壽</span></div>
+          <div class="logo-card"><picture><source srcset="images/partners/life/transglobe.webp" type="image/webp"><img src="images/partners/life/transglobe.png" alt="全球人壽標誌" loading="lazy" width="48" height="48"></picture><span>全球人壽</span></div>
+          <div class="logo-card"><picture><source srcset="images/partners/life/taiwan-life.webp" type="image/webp"><img src="images/partners/life/taiwan-life.png" alt="台灣人壽標誌" loading="lazy" width="48" height="48"></picture><span>台灣人壽</span></div>
+          <div class="logo-card"><picture><source srcset="images/partners/life/farglory-life.webp" type="image/webp"><img src="images/partners/life/farglory-life.png" alt="遠雄人壽標誌" loading="lazy" width="16" height="16"></picture><span>遠雄人壽</span></div>
+          <div class="logo-card"><picture><source srcset="images/partners/life/yuanta-life.webp" type="image/webp"><img src="images/partners/life/yuanta-life.png" alt="元大人壽標誌" loading="lazy" width="16" height="16"></picture><span>元大人壽</span></div>
+          <div class="logo-card"><picture><source srcset="images/partners/life/allianz-life.webp" type="image/webp"><img src="images/partners/life/allianz-life.png" alt="安聯人壽標誌" loading="lazy" width="128" height="128"></picture><span>安聯人壽</span></div>
+          <div class="logo-card"><picture><source srcset="images/partners/life/chubb-life.webp" type="image/webp"><img src="images/partners/life/chubb-life.png" alt="安達人壽標誌" loading="lazy" width="32" height="32"></picture><span>安達人壽</span></div>
+          <div class="logo-card"><picture><source srcset="images/partners/life/shin-kong-life.webp" type="image/webp"><img src="images/partners/life/shin-kong-life.png" alt="新光人壽標誌" loading="lazy" width="16" height="16"></picture><span>新光人壽</span></div>
+          <div class="logo-card"><picture><source srcset="images/partners/life/hontai-life.webp" type="image/webp"><img src="images/partners/life/hontai-life.png" alt="宏泰人壽標誌" loading="lazy" width="128" height="128"></picture><span>宏泰人壽</span></div>
+          <div class="logo-card"><picture><source srcset="images/partners/life/fubon-life.webp" type="image/webp"><img src="images/partners/life/fubon-life.png" alt="富邦人壽標誌" loading="lazy" width="64" height="64"></picture><span>富邦人壽</span></div>
+          <div class="logo-card"><picture><source srcset="images/partners/life/aia-life.webp" type="image/webp"><img src="images/partners/life/aia-life.png" alt="友邦人壽標誌" loading="lazy" width="16" height="16"></picture><span>友邦人壽</span></div>
+          <div class="logo-card"><picture><source srcset="images/partners/life/prudential-life.webp" type="image/webp"><img src="images/partners/life/prudential-life.png" alt="保誠人壽標誌" loading="lazy" width="32" height="32"></picture><span>保誠人壽</span></div>
+          <div class="logo-card"><picture><source srcset="images/partners/life/kgi-life.webp" type="image/webp"><img src="images/partners/life/kgi-life.png" alt="凱基人壽標誌" loading="lazy" width="128" height="128"></picture><span>凱基人壽</span></div>
+          <div class="logo-card"><picture><source srcset="images/partners/life/bank-taiwan-life.webp" type="image/webp"><img src="images/partners/life/bank-taiwan-life.png" alt="台銀人壽標誌" loading="lazy" width="100" height="100"></picture><span>台銀人壽</span></div>
+          <div class="logo-card"><picture><source srcset="images/partners/life/first-life.webp" type="image/webp"><img src="images/partners/life/first-life.png" alt="第一金人壽標誌" loading="lazy" width="48" height="48"></picture><span>第一金人壽</span></div>
       </div></div>
       <div class="partner-group"><div class="partner-heading"><h3>產險合作夥伴</h3><span>PROPERTY &amp; CASUALTY</span></div><div class="logo-grid">
-          <div class="logo-card"><img src="images/partners/property/chubb-insurance.png" alt="安達產物標誌" loading="lazy" width="32" height="32"><span>安達產物</span></div>
-          <div class="logo-card"><img src="images/partners/property/tokio-marine-newa.png" alt="新安東京海上產險標誌" loading="lazy" width="32" height="32"><span>新安東京海上產險</span></div>
-          <div class="logo-card"><img src="images/partners/property/fubon-insurance.png" alt="富邦產險標誌" loading="lazy" width="64" height="64"><span>富邦產險</span></div>
-          <div class="logo-card"><img src="images/partners/property/mega-insurance.png" alt="兆豐保險標誌" loading="lazy" width="128" height="128"><span>兆豐保險</span></div>
-          <div class="logo-card"><img src="images/partners/property/shin-kong-insurance.png" alt="新光產物保險標誌" loading="lazy" width="32" height="32"><span>新光產物保險</span></div>
-          <div class="logo-card"><img src="images/partners/property/hotai-insurance.png" alt="和泰產險標誌" loading="lazy" width="128" height="128"><span>和泰產險</span></div>
-          <div class="logo-card"><img src="images/partners/property/msig-mingtai.png" alt="明台產物保險標誌" loading="lazy" width="128" height="128"><span>明台產物保險</span></div>
-          <div class="logo-card"><img class="wide-logo" src="images/partners/property/ww-union.png" alt="旺旺友聯產物保險公司標誌" loading="lazy" width="416" height="65"><span>旺旺友聯產物保險公司</span></div>
-          <div class="logo-card"><img class="wide-logo" src="images/partners/property/taian-insurance.png" alt="泰安產物保險標誌" loading="lazy" width="162" height="44"><span>泰安產物保險</span></div>
-          <div class="logo-card"><img src="images/partners/property/cathay-insurance.png" alt="國泰產險標誌" loading="lazy" width="16" height="16"><span>國泰產險</span></div>
-          <div class="logo-card"><img src="images/partners/property/ctbc-insurance.png" alt="中國信託產險標誌" loading="lazy" width="48" height="48"><span>中國信託產險</span></div>
-          <div class="logo-card"><img src="images/partners/property/south-china-insurance.png" alt="華南產物保險標誌" loading="lazy" width="64" height="64"><span>華南產物保險</span></div>
-          <div class="logo-card"><img src="images/partners/property/taiwan-fire-marine.png" alt="台灣產物保險標誌" loading="lazy" width="32" height="32"><span>台灣產物保險</span></div>
+          <div class="logo-card"><picture><source srcset="images/partners/property/chubb-insurance.webp" type="image/webp"><img src="images/partners/property/chubb-insurance.png" alt="安達產物標誌" loading="lazy" width="32" height="32"></picture><span>安達產物</span></div>
+          <div class="logo-card"><picture><source srcset="images/partners/property/tokio-marine-newa.webp" type="image/webp"><img src="images/partners/property/tokio-marine-newa.png" alt="新安東京海上產險標誌" loading="lazy" width="32" height="32"></picture><span>新安東京海上產險</span></div>
+          <div class="logo-card"><picture><source srcset="images/partners/property/fubon-insurance.webp" type="image/webp"><img src="images/partners/property/fubon-insurance.png" alt="富邦產險標誌" loading="lazy" width="64" height="64"></picture><span>富邦產險</span></div>
+          <div class="logo-card"><picture><source srcset="images/partners/property/mega-insurance.webp" type="image/webp"><img src="images/partners/property/mega-insurance.png" alt="兆豐保險標誌" loading="lazy" width="128" height="128"></picture><span>兆豐保險</span></div>
+          <div class="logo-card"><picture><source srcset="images/partners/property/shin-kong-insurance.webp" type="image/webp"><img src="images/partners/property/shin-kong-insurance.png" alt="新光產物保險標誌" loading="lazy" width="32" height="32"></picture><span>新光產物保險</span></div>
+          <div class="logo-card"><picture><source srcset="images/partners/property/hotai-insurance.webp" type="image/webp"><img src="images/partners/property/hotai-insurance.png" alt="和泰產險標誌" loading="lazy" width="128" height="128"></picture><span>和泰產險</span></div>
+          <div class="logo-card"><picture><source srcset="images/partners/property/msig-mingtai.webp" type="image/webp"><img src="images/partners/property/msig-mingtai.png" alt="明台產物保險標誌" loading="lazy" width="128" height="128"></picture><span>明台產物保險</span></div>
+          <div class="logo-card"><picture><source srcset="images/partners/property/ww-union.webp" type="image/webp"><img class="wide-logo" src="images/partners/property/ww-union.png" alt="旺旺友聯產物保險公司標誌" loading="lazy" width="416" height="65"></picture><span>旺旺友聯產物保險公司</span></div>
+          <div class="logo-card"><picture><source srcset="images/partners/property/taian-insurance.webp" type="image/webp"><img class="wide-logo" src="images/partners/property/taian-insurance.png" alt="泰安產物保險標誌" loading="lazy" width="162" height="44"></picture><span>泰安產物保險</span></div>
+          <div class="logo-card"><picture><source srcset="images/partners/property/cathay-insurance.webp" type="image/webp"><img src="images/partners/property/cathay-insurance.png" alt="國泰產險標誌" loading="lazy" width="16" height="16"></picture><span>國泰產險</span></div>
+          <div class="logo-card"><picture><source srcset="images/partners/property/ctbc-insurance.webp" type="image/webp"><img src="images/partners/property/ctbc-insurance.png" alt="中國信託產險標誌" loading="lazy" width="48" height="48"></picture><span>中國信託產險</span></div>
+          <div class="logo-card"><picture><source srcset="images/partners/property/south-china-insurance.webp" type="image/webp"><img src="images/partners/property/south-china-insurance.png" alt="華南產物保險標誌" loading="lazy" width="64" height="64"></picture><span>華南產物保險</span></div>
+          <div class="logo-card"><picture><source srcset="images/partners/property/taiwan-fire-marine.webp" type="image/webp"><img src="images/partners/property/taiwan-fire-marine.png" alt="台灣產物保險標誌" loading="lazy" width="32" height="32"></picture><span>台灣產物保險</span></div>
       </div></div>
       <p class="partner-note">以上名單依目前提供之合作資訊整理；實際可提供商品、投保規則及合作狀態，仍以大誠保險經紀人與各保險公司最新公告為準。各公司名稱與標誌之權利歸原權利人所有。</p>
     </section>
