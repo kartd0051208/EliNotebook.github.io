@@ -1,0 +1,279 @@
+/* =============================================================================
+   核保工具中心：補充樣式
+
+   版面主體沿用 financial-tools.css（.site-header / .hero / .workspace-shell /
+   .tool-rail / .calculator-area / .field / .result-card / .table-wrap …），
+   這裡只補核保專屬的元件，並且全部使用該檔已定義的色彩變數，
+   不另外定義色票，深淺色模式才會自動跟著切換。
+
+   全部以 .uw- 前綴命名，避免和既有樣式互相污染。
+   ============================================================================= */
+
+/* ---------- 結果卡的狀態色 ---------- */
+
+.result-card.uw-good { border-left: 3px solid var(--good); }
+.result-card.uw-warn { border-left: 3px solid var(--badge-gold); }
+.result-card.uw-bad  { border-left: 3px solid var(--warn); }
+
+.result-card.uw-good strong { color: var(--good); }
+.result-card.uw-warn strong { color: var(--badge-gold); }
+.result-card.uw-bad  strong { color: var(--warn); }
+
+/* ---------- 傾向標籤 ---------- */
+
+.uw-pill {
+  display: inline-block;
+  padding: .1rem .55rem;
+  border-radius: 999px;
+  font-size: .72rem;
+  font-weight: 600;
+  line-height: 1.6;
+  white-space: nowrap;
+  color: var(--on-badge);
+  vertical-align: middle;
+}
+
+.uw-pill.uw-good { background: var(--good); }
+.uw-pill.uw-warn { background: var(--badge-gold); }
+.uw-pill.uw-bad  { background: var(--badge-warn); }
+.uw-pill.uw-info { background: var(--badge-info); }
+
+/* ---------- 核取方塊 ---------- */
+
+.uw-check-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem 1.4rem;
+  margin: .2rem 0 .9rem;
+}
+
+.uw-check {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: .5rem;
+  font-size: .88rem;
+  cursor: pointer;
+  line-height: 1.55;
+}
+
+.uw-check input[type="checkbox"] {
+  inline-size: 18px;
+  block-size: 18px;
+  margin: .15rem 0 0;
+  accent-color: var(--green);
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+
+.uw-check input[type="checkbox"]:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+/* ---------- 文件檢核清單 ---------- */
+
+.uw-checklist {
+  list-style: none;
+  margin: .9rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: .4rem;
+}
+
+.uw-checklist li {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--paper);
+  transition: background .15s ease, border-color .15s ease;
+}
+
+.uw-checklist li:has(input:checked) {
+  background: var(--surface-alt);
+  border-color: var(--good);
+}
+
+.uw-checklist .uw-check {
+  inline-size: 100%;
+  padding: .6rem .75rem;
+  align-items: flex-start;
+}
+
+.uw-doc-body {
+  display: flex;
+  flex-direction: column;
+  gap: .15rem;
+  min-inline-size: 0;
+}
+
+.uw-doc-title {
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+  flex-wrap: wrap;
+  font-weight: 600;
+}
+
+.uw-doc-note {
+  font-size: .78rem;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+/* ---------- 分類篩選 ---------- */
+
+.uw-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+  margin: .6rem 0 .2rem;
+}
+
+.uw-chip {
+  appearance: none;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--muted);
+  border-radius: 999px;
+  padding: .3rem .75rem;
+  font: inherit;
+  font-size: .78rem;
+  cursor: pointer;
+  transition: background .15s ease, color .15s ease, border-color .15s ease;
+}
+
+.uw-chip:hover { border-color: var(--green); color: var(--ink); }
+
+.uw-chip.active {
+  background: var(--brand-deep);
+  border-color: var(--brand-deep);
+  color: var(--on-brand);
+}
+
+.uw-chip:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 2px; }
+
+/* ---------- 按鈕列 ---------- */
+
+.uw-btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+  margin: .2rem 0 .8rem;
+}
+
+/* ---------- 表格 ---------- */
+
+td.uw-num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+tr.uw-row-total td {
+  background: var(--surface-alt);
+  font-weight: 700;
+}
+
+/* ---------- 清單與雙欄 ---------- */
+
+.uw-two-col {
+  display: grid;
+  gap: 1rem 1.6rem;
+  grid-template-columns: 1fr;
+  margin-top: .9rem;
+}
+
+@media (min-width: 720px) {
+  .uw-two-col { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+.uw-sub {
+  margin: 0 0 .45rem;
+  font-size: .8rem;
+  letter-spacing: .1em;
+  color: var(--green);
+  text-transform: uppercase;
+}
+
+.uw-list {
+  margin: 0;
+  padding-inline-start: 1.4rem;
+  font-size: .85rem;
+  line-height: 1.8;
+  color: var(--ink);
+}
+
+.uw-list li { padding-inline-start: .15rem; }
+
+/* ---------- 官方連結卡 ---------- */
+
+.uw-links {
+  display: grid;
+  gap: .6rem;
+  grid-template-columns: 1fr;
+  margin-top: .5rem;
+}
+
+@media (min-width: 640px) {
+  .uw-links { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (min-width: 1080px) {
+  .uw-links { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+a.uw-link {
+  display: block;
+  padding: .8rem .9rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  color: inherit;
+  text-decoration: none;
+  transition: border-color .15s ease, transform .15s ease;
+}
+
+a.uw-link:hover { border-color: var(--green); transform: translateY(-1px); }
+a.uw-link:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 2px; }
+
+a.uw-link strong { display: block; font-size: .9rem; margin-block-end: .2rem; }
+a.uw-link span { display: block; font-size: .78rem; color: var(--muted); line-height: 1.55; }
+a.uw-link em {
+  display: block;
+  margin-block-start: .35rem;
+  font-style: normal;
+  font-size: .7rem;
+  color: var(--green);
+  word-break: break-all;
+}
+
+/* ---------- 螢幕外元素（複製後備用的暫存欄位） ---------- */
+
+.uw-offscreen {
+  position: fixed;
+  inset-block-start: -1000px;
+  inset-inline-start: -1000px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ---------- 尊重減少動態設定 ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .uw-checklist li,
+  .uw-chip,
+  a.uw-link { transition: none; }
+  a.uw-link:hover { transform: none; }
+}
+
+/* ---------- 列印 ---------- */
+
+@media print {
+  .uw-chips,
+  .uw-btn-row,
+  .rail-arrow { display: none !important; }
+
+  .uw-checklist li { break-inside: avoid; border-color: #999; }
+  .uw-pill { border: 1px solid #999; color: #000; background: transparent !important; }
+  a.uw-link { break-inside: avoid; }
+  a.uw-link em { color: #555; }
+}

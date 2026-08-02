@@ -1,0 +1,15 @@
+/* 沒有 JavaScript 時的樣式調整。
+   本頁 CSP 為 style-src 'self'，不能用 inline <style>，因此獨立成檔。
+   金融工具中心是在 <noscript> 內寫 inline style，那段其實會被 CSP 擋掉，
+   這裡改成外部檔案才會真的生效。 */
+
+.theme-toggle,
+.tool-index .search,
+.tool-rail,
+.result-peek {
+  display: none !important;
+}
+
+.calculator-area {
+  min-block-size: 0;
+}

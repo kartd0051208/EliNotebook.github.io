@@ -8,20 +8,27 @@
    ============================================================================= */
 "use strict";
 
-const VERSION = "v1";
+const VERSION = "v2";
 const CACHE = `elinotebook-${VERSION}`;
 
-/* 核心資源：離線時要能完整開啟兩個頁面 */
+/* 核心資源：離線時要能完整開啟三個頁面 */
 const CORE = [
   "./",
   "./index.html",
   "./financial-tools.html",
+  "./underwriting-tools.html",
   "./404.html",
   "./style/financial-tools.css",
+  "./style/underwriting-tools.css",
+  "./style/underwriting-noscript.css",
   "./javascript/theme.js",
+  "./javascript/analytics.js",
   "./javascript/financial-tools.js",
+  "./javascript/underwriting-core.js",
+  "./javascript/underwriting-tools.js",
   "./site.webmanifest",
   "./financial-tools-manifest.json",
+  "./underwriting-tools-manifest.json",
   "./images/icons/icon-192.png",
   "./images/icons/icon-512.png",
   "./images/icons/icon-512-maskable.png",

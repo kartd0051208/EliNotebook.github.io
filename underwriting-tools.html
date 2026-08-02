@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="description" content="EliNotebook 核保工具中心：保險年齡、民國西元換算、BMI 體位核保、等待期、繳費期別、新生兒投保門檻與體況核保對照、保障缺口試算。">
+  <meta name="robots" content="index,follow">
+  <meta name="format-detection" content="telephone=no">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#e9e5de">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="核保工具">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://gc.zgo.at; style-src 'self'; img-src 'self' data: https://*.goatcounter.com; font-src 'self'; connect-src https://*.goatcounter.com; object-src 'none'; frame-src 'none'; worker-src 'self'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
+  <title>核保工具中心｜EliNotebook</title>
+  <link rel="canonical" href="https://kartd0051208.github.io/EliNotebook.github.io/underwriting-tools.html">
+  <link rel="manifest" href="./underwriting-tools-manifest.json">
+  <link rel="icon" type="image/png" sizes="192x192" href="./images/icons/icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="./images/icons/icon-512.png">
+  <link rel="apple-touch-icon" href="./images/icons/apple-touch-icon.png">
+  <script src="./javascript/theme.js"></script>
+  <link rel="stylesheet" href="./style/financial-tools.css">
+  <link rel="stylesheet" href="./style/underwriting-tools.css">
+  <script src="./javascript/underwriting-core.js" defer></script>
+  <script src="./javascript/underwriting-tools.js" defer></script>
+  <noscript><link rel="stylesheet" href="./style/underwriting-noscript.css"></noscript>
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "EliNotebook 核保工具中心",
+  "url": "https://kartd0051208.github.io/EliNotebook.github.io/underwriting-tools.html",
+  "applicationCategory": "BusinessApplication",
+  "operatingSystem": "Web",
+  "browserRequirements": "需支援 JavaScript 的現代瀏覽器",
+  "inLanguage": "zh-Hant-TW",
+  "isAccessibleForFree": true,
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "TWD" },
+  "description": "保險年齡、民國西元換算、BMI 體位核保、等待期與保障起日、繳費期別、未滿15歲保額上限、新生兒投保門檻、矯正年齡、新生兒體況核保對照與應備文件檢核、保障缺口試算。所有計算在瀏覽器本機執行，輸入的資料不會被上傳或儲存。",
+  "featureList": [
+    "投保年齡與日期：保險年齡、實足年齡、民國西元換算",
+    "體位與核保：BMI 分級與加費區間",
+    "保單條件：等待期、繳費期別、未滿15歲喪葬費用保險金上限",
+    "新生兒投保門檻與早產兒矯正年齡",
+    "新生兒體況核保傾向對照與應備文件檢核",
+    "保障缺口：壽險保額、住院日額、實支實付雜費額度",
+    "官方查詢工具彙整"
+  ],
+  "author": { "@type": "Person", "name": "葉秀庭" },
+  "publisher": { "@type": "Person", "name": "葉秀庭" }
+}
+  </script>
+  <script src="./javascript/analytics.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#calculator">跳至核保工具</a>
+  <header class="site-header">
+    <a class="brand" href="./index.html" aria-label="返回葉秀庭個人網站首頁"><span>E</span><div><strong>EliNotebook</strong><small>UNDERWRITING TOOLKIT</small></div></a>
+    <div class="header-actions">
+      <button type="button" class="theme-toggle" data-theme-toggle data-mode="auto" aria-label="切換日夜模式"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="8.2"/><path d="M12 3.8a8.2 8.2 0 0 0 0 16.4z" class="fill"/></svg><span class="theme-label">自動</span></button>
+      <a class="back-link" href="./financial-tools.html">金融工具 ↗</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" id="top">
+      <div>
+        <p class="eyebrow">UNDERWRITING DECISION WORKSPACE</p>
+        <h1>核保工具中心</h1>
+        <p>把投保年齡、體位、等待期、新生兒體況與保障缺口，放進同一個送件前就能算清楚的工作區。</p>
+      </div>
+      <aside>
+        <strong>資料不離開裝置</strong>
+        <p>你輸入的日期、體況與金額都只在目前瀏覽器記憶體執行，不上傳、不儲存。文件檢核清單的勾選狀態僅存在這台裝置的瀏覽器內，關閉頁面後仍在，清除瀏覽資料即消失。</p>
+      </aside>
+    </section>
+
+    <section class="tool-index" aria-labelledby="tool-index-title">
+      <div><p class="eyebrow">15 UNDERWRITING CALCULATIONS</p><h2 id="tool-index-title">七組核保工作區</h2></div>
+      <label class="search"><span>搜尋工具</span><input id="tool-search" type="search" placeholder="例如：保險年齡、卵圓孔、等待期" autocomplete="off"></label>
+    </section>
+
+    <div class="workspace-shell">
+      <nav class="tool-rail at-start" aria-label="核保工具分類">
+        <button type="button" class="rail-arrow prev" data-dir="-1" aria-label="上一組工具">‹</button>
+        <div id="tool-nav" role="tablist" aria-label="核保工具分類" aria-orientation="horizontal"></div>
+        <button type="button" class="rail-arrow next" data-dir="1" aria-label="下一組工具">›</button>
+        <div class="rail-progress" aria-hidden="true"><span id="rail-bar"></span></div>
+        <p class="rail-hint" aria-hidden="true">左右滑動可切換工具</p>
+      </nav>
+      <section id="calculator" class="calculator-area" role="tabpanel" tabindex="-1" aria-live="polite">
+        <noscript>
+          <div class="panel-heading"><div><p class="eyebrow">JAVASCRIPT REQUIRED</p><h2>需要開啟 JavaScript</h2></div><p>本頁的所有計算都在你的瀏覽器裡執行，因此需要 JavaScript。</p></div>
+          <div class="input-check"><div class="chk warn"><b>目前瀏覽器停用了 JavaScript</b>請在瀏覽器設定中允許本站執行 JavaScript 後重新整理。所有計算仍然只會在這台裝置上執行，不會上傳任何資料。</div></div>
+        </noscript>
+      </section>
+      <p class="sidebar-note">試算結果為投保前的初步評估，不等於保險公司的核保決定。</p>
+    </div>
+
+    <section class="formula-notes">
+      <p class="eyebrow">READ BEFORE USE</p>
+      <h2>使用範圍與限制</h2>
+      <div>
+        <article>
+          <strong>核保結果有五種</strong>
+          <p>正常承保、加費、除外、延期（暫緩）、拒保。本頁的「核保傾向」只是常見方向，各公司寬嚴差異很大。體況件送件前務必先做<strong>事先徵詢（預核保）</strong>，避免留下拒保紀錄影響後續其他公司的核保。</p>
+        </article>
+        <article>
+          <strong>年齡與期別以條款為準</strong>
+          <p>投保年齡採「足歲計算，未滿一歲之零數超過六個月者加算一歲」；等待期天數與繳費期別係數（年繳 1.00、半年繳 0.52、季繳 0.262、月繳 0.088）為業界通用值，實際仍以各商品條款與要保書為準。</p>
+        </article>
+        <article>
+          <strong>不是醫療建議</strong>
+          <p>新生兒體況的判讀請以主治醫師意見為準，本頁整理的是核保實務上會被詢問的項目與需要準備的報告，不構成任何醫療診斷或建議。未滿 18 歲的 BMI 請改用國健署官方兒童計算機。</p>
+        </article>
+        <article>
+          <strong>隱私設計</strong>
+          <p>本頁沒有登入功能，也沒有資料庫。<strong>你輸入的所有內容都只留在這台裝置，不會被傳送或儲存。</strong>網站僅使用不放 cookie、不記錄個人身分的匿名流量統計（GoatCounter）。請勿把客戶的個資或病歷內容貼到公開網站原始碼。</p>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <div id="result-peek" class="result-peek" aria-hidden="true"></div>
+
+  <footer>
+    <strong>EliNotebook Underwriting Toolkit</strong>
+    <p>核保實務輔助試算工具｜最終核保結果請以各保險公司之核保決定為準，醫療判斷請諮詢主治醫師。</p>
+  </footer>
+</body>
+</html>
