@@ -8,7 +8,7 @@
    ============================================================================= */
 "use strict";
 
-const VERSION = "v2";
+const VERSION = "v3";
 const CACHE = `elinotebook-${VERSION}`;
 
 /* 核心資源：離線時要能完整開啟三個頁面 */

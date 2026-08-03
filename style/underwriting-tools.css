@@ -246,6 +246,80 @@ a.uw-link em {
   word-break: break-all;
 }
 
+/* ---------- 名詞解釋 ---------- */
+
+.uw-gloss {
+  margin: .3rem 0 0;
+  display: grid;
+  gap: 0;
+}
+
+.uw-gloss dt {
+  font-weight: 700;
+  font-size: .88rem;
+  margin-block-start: .75rem;
+  padding-block-start: .75rem;
+  border-block-start: 1px solid var(--line);
+  color: var(--ink);
+}
+
+.uw-gloss dt:first-of-type {
+  margin-block-start: 0;
+  padding-block-start: 0;
+  border-block-start: 0;
+}
+
+.uw-gloss dd {
+  margin: .2rem 0 0;
+  font-size: .83rem;
+  line-height: 1.75;
+  color: var(--muted);
+}
+
+/* ---------- 匯出格式選單 ---------- */
+
+.uw-format {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  font-size: .78rem;
+  color: var(--muted);
+}
+
+.uw-format > span {
+  white-space: nowrap;
+}
+
+.uw-format select {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  border-radius: 8px;
+  padding: .32rem .5rem;
+  font: inherit;
+  font-size: .78rem;
+  min-height: 34px;
+  max-inline-size: 15rem;
+  cursor: pointer;
+}
+
+.uw-format select:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+@media (max-width: 560px) {
+  .uw-format {
+    inline-size: 100%;
+    justify-content: space-between;
+  }
+  .uw-format select {
+    flex: 1 1 auto;
+    max-inline-size: none;
+    min-height: 40px;
+  }
+}
+
 /* ---------- 螢幕外元素（複製後備用的暫存欄位） ---------- */
 
 .uw-offscreen {
@@ -270,7 +344,12 @@ a.uw-link em {
 @media print {
   .uw-chips,
   .uw-btn-row,
+  .uw-format,
   .rail-arrow { display: none !important; }
+
+  /* 名詞解釋列印時要跟著出來，這是客戶最需要的部分 */
+  .uw-gloss dt { break-after: avoid; }
+  .uw-gloss dd { break-before: avoid; }
 
   .uw-checklist li { break-inside: avoid; border-color: #999; }
   .uw-pill { border: 1px solid #999; color: #000; background: transparent !important; }

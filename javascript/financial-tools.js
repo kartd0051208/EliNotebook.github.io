@@ -1070,7 +1070,7 @@ function downloadCsv(){
 /* -------- 客戶版列印報告：帶顧問資訊、輸入條件、結果、計算式與圖表 -------- */
 const ADVISOR={
   name:"葉秀庭",
-  title:"保險經紀人｜風險規劃顧問",
+  title:"保險經紀人公司業務員｜風險規劃",
   org:"大誠保險經紀人股份有限公司",
   contact:"https://line.me/ti/p/gpFhzbhd6U"
 };
