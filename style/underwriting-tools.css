@@ -12,11 +12,11 @@
 /* ---------- 結果卡的狀態色 ---------- */
 
 .result-card.uw-good { border-left: 3px solid var(--good); }
-.result-card.uw-warn { border-left: 3px solid var(--badge-gold); }
+.result-card.uw-warn { border-left: 3px solid var(--gold); }
 .result-card.uw-bad  { border-left: 3px solid var(--warn); }
 
 .result-card.uw-good strong { color: var(--good); }
-.result-card.uw-warn strong { color: var(--badge-gold); }
+.result-card.uw-warn strong { color: var(--gold); }
 .result-card.uw-bad  strong { color: var(--warn); }
 
 /* ---------- 傾向標籤 ---------- */
@@ -33,7 +33,7 @@
   vertical-align: middle;
 }
 
-.uw-pill.uw-good { background: var(--good); }
+.uw-pill.uw-good { background: var(--badge-good); }
 .uw-pill.uw-warn { background: var(--badge-gold); }
 .uw-pill.uw-bad  { background: var(--badge-warn); }
 .uw-pill.uw-info { background: var(--badge-info); }
@@ -355,4 +355,14 @@ a.uw-link em {
   .uw-pill { border: 1px solid #999; color: #000; background: transparent !important; }
   a.uw-link { break-inside: avoid; }
   a.uw-link em { color: #555; }
+}
+
+/* ---------- Windows 高對比模式 ---------- */
+@media (forced-colors: active) {
+  .uw-pill { border: 1px solid ButtonBorder; forced-color-adjust: none; }
+  .uw-chip { border: 1px solid ButtonBorder; }
+  .uw-chip.active { background: Highlight; color: HighlightText; forced-color-adjust: none; }
+  .result-card.uw-good,
+  .result-card.uw-warn,
+  .result-card.uw-bad { border-left-color: CanvasText; }
 }

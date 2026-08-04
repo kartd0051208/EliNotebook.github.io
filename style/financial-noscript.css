@@ -1,0 +1,10 @@
+/* 沒有 JavaScript 時的樣式調整。
+   本頁 CSP 為 style-src 'self'，不允許 inline <style>，
+   因此必須用外部檔案，寫在 <noscript><style> 裡會被擋掉。 */
+
+.theme-toggle,
+.tool-index .search,
+.tool-rail,
+.result-peek {
+  display: none !important;
+}

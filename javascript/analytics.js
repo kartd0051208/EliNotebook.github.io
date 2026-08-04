@@ -81,7 +81,10 @@
     /* 金融工具：匯出行為 */
     var exp = target.closest("[data-export]");
     if(exp){
-      var labels = { copy: "複製結果", csv: "下載 CSV", report: "列印／存 PDF" };
+      var labels = {
+        copy: "複製結果", csv: "下載 CSV", report: "列印／存 PDF",
+        download: "下載檔案", print: "列印"
+      };
       var kind = exp.dataset.export;
       track("export/" + kind, "匯出｜" + (labels[kind] || kind));
       return;

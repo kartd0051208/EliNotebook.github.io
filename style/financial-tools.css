@@ -23,7 +23,8 @@
   /* 提示徽章：深底白字，兩個主題共用（白字對底 5.5:1 以上） */
   --badge-warn:#8e5c52;
   --badge-gold:#776746;
-  --badge-info:#5d6c60;
+  --badge-good:#4b714f;
+  --badge-info:#6e6861;
   --on-badge:#ffffff;
 }
 

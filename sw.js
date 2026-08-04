@@ -8,7 +8,7 @@
    ============================================================================= */
 "use strict";
 
-const VERSION = "v3";
+const VERSION = "v5";
 const CACHE = `elinotebook-${VERSION}`;
 
 /* 核心資源：離線時要能完整開啟三個頁面 */
@@ -21,6 +21,7 @@ const CORE = [
   "./style/financial-tools.css",
   "./style/underwriting-tools.css",
   "./style/underwriting-noscript.css",
+  "./style/financial-noscript.css",
   "./javascript/theme.js",
   "./javascript/analytics.js",
   "./javascript/financial-tools.js",
@@ -33,6 +34,9 @@ const CORE = [
   "./images/icons/icon-512.png",
   "./images/icons/icon-512-maskable.png",
   "./images/icons/apple-touch-icon.png",
+  "./images/og/og-home.jpg",
+  "./images/og/og-underwriting.jpg",
+  "./images/og/og-financial.jpg",
   "./images/profile/eli-portrait-362.webp",
   "./images/profile/eli-portrait-543.webp",
   "./images/profile/eli-portrait-724.webp",
